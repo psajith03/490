@@ -1,28 +1,20 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Form from './components/Form';
+import Home from './components/Home';
 import './App.css';
-import GlowingButton from './components/GlowingButton';
-import TerminalLoader from './components/TerminalLoader';
 
 function App() {
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleClick = () => {
-    setIsLoading(true);
-  };
-
   return (
-    <div className="App">
-      <header className="App-header">
-        <GlowingButton text="Coming Soon" onClick={handleClick} />
-      </header>
-      
-      {}
-      {isLoading && (
-        <div className="overlay">
-          <TerminalLoader />
-        </div>
-      )}
-    </div>
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<Form />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
