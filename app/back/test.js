@@ -5,7 +5,7 @@ admin.initializeApp({
   credential: admin.credential.cert(require(process.env.FIREBASE_CREDENTIALS))
 });
 
-mongoose.connect('mongodb://localhost:27017/fitness_app', {
+mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
