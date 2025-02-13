@@ -68,8 +68,4 @@ app.post('/api/auth/update-profile', async (req, res) => {
   }
 });
 
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+module.exports = app; // Export the Express app instead of starting the server
