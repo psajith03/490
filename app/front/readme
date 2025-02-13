@@ -1,0 +1,24 @@
+/app
+  ├── /front                       # Frontend (React)
+  │   ├── /public                  # Public assets (index.html, icons, etc.)
+  │   ├── /src                     # Frontend source code
+  │   │   ├── /components          # React components
+  │   │   │   ├── Form.js
+  │   │   │   ├── GlowingButton.js
+  │   │   │   ├── Home.js
+  │   │   │   ├── Login.js         # Login component (Firebase Auth)
+  │   │   │   ├── OnboardingQuestionnaire.js
+  │   │   │   ├── TerminalLoader.js
+  │   │   ├── /styles              # CSS styles
+  │   │   │   ├── App.css
+  │   │   │   ├── index.css
+  │   │   │   ├── Login.css
+  │   │   ├── App.js               # Main React component
+  │   │   ├── firebase.js          # Firebase frontend config (loads from `.env`)
+  │   │   ├── index.js             # React entry point
+  │   │   ├── reportWebVitals.js   # Performance monitoring (optional)
+  │   │   ├── setupTests.js        # Testing setup (optional)
+  │   ├── .env                     # Frontend environment variables (ignored by Git)
+  │   ├── package.json             # Frontend dependencies
+  │   ├── package-lock.json        # Frontend dependency lock file
+  │   ├── README.md                # Frontend documentation (optional)

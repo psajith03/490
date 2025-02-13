@@ -1,13 +1,11 @@
-const express = require('express');
-const app = express();
-const port = process.env.PORT || 5000;
+// app/back/server.js
+const app = require('./index'); // Import the main backend app
+const dotenv = require('dotenv');
 
-// Default route for testing
-app.get('/', (req, res) => {
-  res.send('Backend is up and running!');
-});
+dotenv.config();
 
-// Start the server
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

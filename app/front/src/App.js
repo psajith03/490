@@ -1,6 +1,7 @@
+// app/front/src/App.js
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import { onAuthStateChanged, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { auth } from './firebase';
 import Form from './components/Form';
 import Home from './components/Home';

@@ -1,3 +1,4 @@
+// app/front/src/components/Form.js
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
@@ -32,27 +33,25 @@ const Form = () => {
     return ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.default;
   };
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
-    
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      navigate('/home');
-      
-      // Make backend API call after navigation for better UX
-      const idToken = await userCredential.user.getIdToken();
-      fetch('http://localhost:5000/api/auth/me', {
-        headers: {
-          'Authorization': `Bearer ${idToken}`
-        }
-      }).catch(err => console.error('Backend sync error:', err));
-    } catch (error) {
-      setError(getErrorMessage(error));
-      setIsLoading(false);
-    }
-  };
+const handleLogin = async (e) => {
+  e.preventDefault();
+  setIsLoading(true);
+  setError('');
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    navigate('/home');  // ← Remove or comment out this line
+    const idToken = await userCredential.user.getIdToken();
+    fetch('http://localhost:5000/api/auth/me', {
+      headers: {
+        'Authorization': `Bearer ${idToken}`
+      }
+    }).catch(err => console.error('Backend sync error:', err));
+  } catch (error) {
+    setError(getErrorMessage(error));
+    setIsLoading(false);
+  }
+};
 
   const handleSignUp = async (e) => {
     e.preventDefault();

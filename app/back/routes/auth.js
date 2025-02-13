@@ -1,3 +1,4 @@
+// app/back/routes/auth.js
 const express = require('express');
 const User = require('../models/User');
 const authenticate = require('../middlewares/auth');

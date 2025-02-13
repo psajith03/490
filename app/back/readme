@@ -1,0 +1,15 @@
+/app
+  ├── /back                        # Backend (Node.js/Express)
+  │   ├── /controllers             # API logic handlers
+  │   ├── /middlewares             # Middleware functions
+  │   ├── /models                  # Database models (Mongoose schemas)
+  │   ├── /routes                  # API routes
+  │   │   ├── auth.js              # Authentication routes
+  │   ├── firebase.js              # Firebase Admin setup
+  │   ├── index.js                 # Main Express app
+  │   ├── server.js                # Starts the server
+  │   ├── .env                     # Backend environment variables (ignored by Git)
+  │   ├── package.json             # Backend dependencies
+  │   ├── package-lock.json        # Backend dependency lock file
+  │   ├── README.md                # Backend documentation (optional)
+  │   ├── test.js                  # Testing file (optional)

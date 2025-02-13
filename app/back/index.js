@@ -1,3 +1,4 @@
+// app/back/index.js
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
@@ -15,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 
 // Firebase Admin Setup
-const serviceAccount = require('../firebaseServiceAccount.json');
+const serviceAccount = require(process.env.FIREBASE_CREDENTIALS);
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
