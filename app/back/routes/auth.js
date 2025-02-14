@@ -30,22 +30,32 @@ router.post('/register', authenticate, async (req, res) => {
 // Me route
 router.get('/me', authenticate, async (req, res) => {
   try {
+    console.log("Fetching user profile for UID:", req.user.uid);
+
     const user = await User.findOne({ firebaseUID: req.user.uid });
+
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      console.error(`User not found for UID: ${req.user.uid}`);
+      return res.status(404).json({ error: 'User profile not found. Please complete registration.' });
     }
+
     res.json(user);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error retrieving user profile:", error);
+    res.status(500).json({ error: 'Internal Server Error while fetching user data' });
   }
 });
+
+
 
 // Update profile route
 router.post('/update-profile', authenticate, async (req, res) => {
   try {
     const user = await User.findOne({ firebaseUID: req.user.uid });
+
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      console.error(`User not found for UID: ${req.user.uid}`);
+      return res.status(404).json({ error: 'User profile not found. Please complete registration.' });
     }
 
     // Validate required fields

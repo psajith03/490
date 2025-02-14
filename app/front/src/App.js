@@ -28,11 +28,14 @@ function App() {
         setUser(user);
         try {
           const idToken = await user.getIdToken(true); // Force refresh token
-          const response = await fetch('http://localhost:5000/api/auth/me', {
+          const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
+          const response = await fetch(`${apiBase}/api/auth/me`, {
             headers: {
               'Authorization': `Bearer ${idToken}`
             }
           });
+
 
           if (response.ok) {
             const userData = await response.json();

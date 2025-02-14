@@ -227,11 +227,19 @@ const OnboardingQuestionnaire = () => {
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) {
+    if (!validateForm()) return;
+  
+    // Ensure user is authenticated
+    if (!auth.currentUser) {
+      console.error("Authentication error: No current user found.");
+      alert("Session expired. Please log in again.");
+      navigate('/'); // Redirect to login page
       return;
     }
   
     try {
+      const idToken = await auth.currentUser.getIdToken(true);
+  
       // Convert height from inches to cm and weight from lbs to kg
       const convertedData = {
         ...formData,
@@ -239,8 +247,13 @@ const OnboardingQuestionnaire = () => {
         weight: formData.weight ? Math.round(formData.weight * 0.453592) : null // lbs to kg
       };
   
-      const idToken = await auth.currentUser.getIdToken();
-      const response = await fetch('http://localhost:5000/api/auth/update-profile', {
+      console.log("Submitting profile data:", convertedData);
+      console.log("ID Token:", idToken);
+  
+      const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  
+      // Submit profile data
+      const response = await fetch(`${apiBase}/api/auth/update-profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -250,30 +263,38 @@ const OnboardingQuestionnaire = () => {
       });
   
       if (!response.ok) {
-        throw new Error('Failed to save profile data');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save profile data');
       }
   
       // Fetch updated user data
-      const userResponse = await fetch('http://localhost:5000/api/auth/me', {
+      const userResponse = await fetch(`${apiBase}/api/auth/me`, {
         headers: {
           'Authorization': `Bearer ${idToken}`
         }
       });
   
-      if (userResponse.ok) {
-        const userData = await userResponse.json();
-        if (userData.isOnboardingComplete) {
-          setIsComplete(true);
-          window.location.reload();
-        }
-      } else {
+      if (!userResponse.ok) {
         throw new Error('Failed to fetch updated user data');
+      }
+  
+      const userData = await userResponse.json();
+  
+      if (userData.isOnboardingComplete) {
+        console.log("Onboarding is complete:", userData);
+        setIsComplete(true);
+        window.location.reload();
+      } else {
+        console.warn("Onboarding still incomplete after update:", userData);
       }
     } catch (error) {
       console.error('Error saving questionnaire:', error);
-      alert('Failed to save your profile. Please try again.');
+      alert(`Error: ${error.message}`);
     }
   };
+  
+  
+  
   
 
   const renderField = (field) => {
@@ -345,7 +366,6 @@ const OnboardingQuestionnaire = () => {
       {isComplete ? (
         <div className="completion-container">
           <h2>Thank you for completing the questionnaire!</h2>
-          <button onClick={() => navigate('/home')}>Click to Begin</button>
         </div>
       ) : (
         <div className="questionnaire-container">

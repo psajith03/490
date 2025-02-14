@@ -33,42 +33,40 @@ const Form = () => {
     return ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.default;
   };
 
-const handleLogin = async (e) => {
-  e.preventDefault();
-  setIsLoading(true);
-  setError('');
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+  
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Removed premature navigation to allow onAuthStateChanged to handle routing
+      const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const idToken = await userCredential.user.getIdToken();
 
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    navigate('/home');  // ← Remove or comment out this line
-    const idToken = await userCredential.user.getIdToken();
-    fetch('http://localhost:5000/api/auth/me', {
-      headers: {
-        'Authorization': `Bearer ${idToken}`
-      }
-    }).catch(err => console.error('Backend sync error:', err));
-  } catch (error) {
-    setError(getErrorMessage(error));
-    setIsLoading(false);
-  }
-};
+      fetch(`${apiBase}/api/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${idToken}`
+        }
+      }).catch(err => console.error('Backend sync error:', err));      
+  
+    } catch (error) {
+      setError(getErrorMessage(error));
+      setIsLoading(false);
+    }
+  };
+  
 
   const handleSignUp = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-
-    if (password.length < 6) {
-      setError('Password should be at least 6 characters long.');
-      setIsLoading(false);
-      return;
-    }
-
+  
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      navigate('/home');
       
-      // Make backend API call after navigation for better UX
+      // Removed premature navigation to allow onAuthStateChanged to handle routing
       const idToken = await userCredential.user.getIdToken();
       fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',
@@ -82,11 +80,13 @@ const handleLogin = async (e) => {
           email
         })
       }).catch(err => console.error('Backend sync error:', err));
+  
     } catch (error) {
       setError(getErrorMessage(error));
       setIsLoading(false);
     }
   };
+  
 
   return (
     <StyledWrapper>

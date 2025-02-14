@@ -7,6 +7,7 @@ const admin = require('firebase-admin');
 
 // Load environment variables
 dotenv.config();
+console.log("MongoDB URI:", process.env.MONGODB_URI);
 
 // Initialize Express app
 const app = express();
@@ -39,33 +40,5 @@ mongoose.connect(process.env.MONGODB_URI, {
 })
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.error('MongoDB connection error:', err));
-
-// Update profile route
-app.post('/api/auth/update-profile', async (req, res) => {
-  const { authorization } = req.headers;
-  if (!authorization || !authorization.startsWith('Bearer ')) {
-    return res.status(403).json({ error: 'Unauthorized' });
-  }
-
-  try {
-    const idToken = authorization.split('Bearer ')[1];
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
-    const uid = decodedToken.uid;
-
-    const userProfile = {
-      ...req.body,
-      isOnboardingComplete: true, // Ensure onboarding status is set
-    };
-
-    // Update user data in MongoDB
-    const User = mongoose.model('User', new mongoose.Schema({ uid: String }, { strict: false }));
-    await User.findOneAndUpdate({ uid }, userProfile, { upsert: true });
-
-    res.json({ message: 'Profile updated successfully', isOnboardingComplete: true });
-  } catch (error) {
-    console.error('Error updating profile:', error);
-    res.status(500).json({ error: 'Failed to update profile' });
-  }
-});
 
 module.exports = app; // Export the Express app instead of starting the server
