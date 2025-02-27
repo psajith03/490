@@ -4,6 +4,100 @@ import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import styled from 'styled-components';
 
+const Home = () => {
+  const navigate = useNavigate();
+  const [preferredName, setPreferredName] = useState('');
+  const [displayText, setDisplayText] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        if (!auth.currentUser) {
+          console.warn("No authenticated user found. Redirecting...");
+          navigate('/');
+          return;
+        }
+
+        const idToken = await auth.currentUser.getIdToken();
+        const API_URL = "http://localhost:5000";
+
+        const response = await fetch(`${API_URL}/api/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${idToken}`
+          }
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          setPreferredName(userData.preferredName || 'Friend');
+        } else {
+          console.error("Failed to fetch user data, redirecting to login...");
+          navigate('/');
+        }
+      } catch (error) {
+        console.error('🚨 Error fetching user data:', error);
+        navigate('/');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!preferredName) return;
+
+    let i = 0;
+    const fullText = `Welcome ${preferredName}!`;
+    setDisplayText("");
+
+    const interval = setInterval(() => {
+      setDisplayText(fullText.slice(0, i + 1));
+      i++;
+      if (i === fullText.length) clearInterval(interval);
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [preferredName]);
+
+  if (loading) return <p>Loading...</p>;
+
+  return (
+    <>
+      <Header>
+        <span>Habit</span>
+        <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+      </Header>
+      <HomeWrapper>
+        <Frame>
+          <LeftBar onClick={() => navigate('/daily')}>DAILY</LeftBar>
+          <TopBar onClick={() => navigate('/exercise')}>EXERCISE</TopBar> 
+          <RightBar onClick={() => navigate('/sleep')}>SLEEP</RightBar>
+          <BottomBar onClick={() => navigate('/diet')}>DIET</BottomBar>
+
+          <CenterContent>
+            <h2>{displayText}</h2>
+          </CenterContent>
+        </Frame>
+      </HomeWrapper>
+    </>
+  );
+};
+
+export default Home;
+
+
 const glowEffect = `
   border: .25em solid var(--glow-color);
   padding: 1em;
@@ -39,7 +133,7 @@ const glowEffect = `
   }
 
   &:hover {
-    color: color-mix(in srgb, var(--glow-color) 70%, white); /* ✅ Lightens text color */
+    color: color-mix(in srgb, var(--glow-color) 70%, white);
 
     background-color: var(--glow-color);
     box-shadow: 0 0 1em .25em var(--glow-color),
@@ -53,91 +147,6 @@ const glowEffect = `
           inset 0 0 .5em .25em var(--glow-color);
   }
 `;
-
-  
-
-const Home = () => {
-  const navigate = useNavigate();
-  const [preferredName, setPreferredName] = useState('');
-  const [displayText, setDisplayText] = useState('');
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      navigate('/');
-    } catch (error) {
-      console.error('Error logging out:', error);
-    }
-  };
-  
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        if (auth.currentUser) {
-          const idToken = await auth.currentUser.getIdToken();
-          const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
-
-          const response = await fetch(`${API_URL}/api/auth/me`, {
-            headers: {
-              'Authorization': `Bearer ${idToken}`
-            }
-          });
-
-          if (response.ok) {
-            const userData = await response.json();
-            setPreferredName(userData.preferredName || 'Friend'); // ✅ Only setting the name, not starting typing yet
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      }
-    };
-
-    fetchUserData();
-  }, []);
-
-  // ✅ Start typing effect only after preferredName is set
-  useEffect(() => {
-    if (!preferredName) return; // ✅ Ensures name is set before animation starts
-
-    let i = 0;
-    const fullText = `Welcome ${preferredName}!`;
-    setDisplayText(""); // Reset before animation starts
-
-    const interval = setInterval(() => {
-      setDisplayText(fullText.slice(0, i + 1));
-      i++;
-      if (i === fullText.length) clearInterval(interval);
-    }, 100); // Adjust speed (lower is faster)
-
-    return () => clearInterval(interval);
-  }, [preferredName]);
-
-  return (
-    <>
-      <Header>
-        <span>Habit</span>
-        <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
-      </Header>
-      <HomeWrapper>
-        <Frame>
-          <LeftBar onClick={() => navigate('/daily')}>DAILY</LeftBar>
-          <TopBar onClick={() => navigate('/exercise')}>EXERCISE</TopBar> 
-          <RightBar onClick={() => navigate('/sleep')}>SLEEP</RightBar>
-          <BottomBar onClick={() => navigate('/diet')}>DIET</BottomBar>
-
-          <CenterContent>
-            <h2>{displayText}</h2> {}
-          </CenterContent>
-        </Frame>
-      </HomeWrapper>
-    </>
-  );
-};
-
-
-
-export default Home;
 
 /* --- STYLES --- */
 
@@ -156,7 +165,6 @@ const HomeWrapper = styled.div`
 `;
 
 
-// Frame and Bars styles remain unchanged
 const Frame = styled.div`
   position: relative;
   width: 400px;
@@ -166,7 +174,6 @@ const Frame = styled.div`
 `;
 
 
-/* Common style base for bars */
 const BarBase = styled.div`
   position: absolute;
   display: flex;
@@ -249,13 +256,13 @@ const CenterContent = styled.div`
   align-items: center;
   justify-content: center;
   text-align: center;
-  z-index: 10; /* Ensures it's above other elements */
+  z-index: 10;
 
   h2 {
-    font-size: 45px; /* ✅ Increase the text size */
+    font-size: 45px;
     font-weight: bold;
-    color: white; /* ✅ Ensures readability */
-    text-shadow: 3px 3px 6px rgba(237, 59, 178, 0.5); /* ✅ Adds a shadow effect */
+    color: white;
+    text-shadow: 3px 3px 6px rgba(237, 59, 178, 0.5);
     margin-bottom: 20px;
     transition: all 0.3s ease-in-out;
   }
@@ -294,11 +301,11 @@ const Header = styled.div`
 
 
 const LogoutButton = styled.button`
-  ${glowEffect}  /* ✅ Keeps the original glow effect */
+  ${glowEffect}
   font-size: 14px;
   padding: 8px 16px;
   position: absolute;
-  right: 20px; /* ✅ Moves to top right */
+  right: 20px;
   top: 50%;
   transform: translateY(-50%);
 `;

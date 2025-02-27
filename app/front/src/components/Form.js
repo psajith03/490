@@ -5,7 +5,6 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'fire
 import { auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 
-// Firebase error code mappings
 const ERROR_MESSAGES = {
   'auth/email-already-in-use': 'This email is already registered. Please try logging in instead.',
   'auth/invalid-email': 'Please enter a valid email address.',
@@ -27,7 +26,6 @@ const Form = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Function to get custom error message
   const getErrorMessage = (error) => {
     const errorCode = error.code || 'default';
     return ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.default;
@@ -41,7 +39,6 @@ const Form = () => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
-      // Removed premature navigation to allow onAuthStateChanged to handle routing
       const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5000';
       const idToken = await userCredential.user.getIdToken();
 
@@ -66,7 +63,6 @@ const Form = () => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
-      // Removed premature navigation to allow onAuthStateChanged to handle routing
       const idToken = await userCredential.user.getIdToken();
       fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',

@@ -21,7 +21,6 @@ const Daily = () => {
 
 export default Daily;
 
-/* --- STYLES --- */
 const PageWrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -34,12 +33,12 @@ const PageWrapper = styled.div`
 `;
 
 const Header = styled.div`
-  position: fixed; /* ✅ Keeps it at the top */
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 60px;
-  background-color: #fff; /* Dark background */
+  background-color: #fff;
   color: black;
   display: flex;
   align-items: center;

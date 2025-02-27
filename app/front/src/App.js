@@ -11,6 +11,8 @@ import Sleep from './components/Sleep';
 import Daily from './components/Daily';
 import Diet from './components/Diet';
 import './App.css';
+import FullRecommendation from "./components/FullRecommendation";
+const API_URL = "http://localhost:5000";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -18,48 +20,48 @@ function App() {
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
 
   useEffect(() => {
-    setPersistence(auth, browserLocalPersistence)
-      .then(() => {
-        console.log("Auth persistence set to local storage");
-      })
-      .catch((error) => {
-        console.error("Error setting auth persistence:", error);
-      });
-
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setUser(user);
-        try {
-          const idToken = await user.getIdToken(true);
-          const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
-          const response = await fetch(`${API_URL}/api/auth/me`, {
-            headers: {
-              'Authorization': `Bearer ${idToken}`
+    const fetchUserData = async () => {
+      setPersistence(auth, browserLocalPersistence)
+        .then(() => console.log("Auth persistence set to local storage"))
+        .catch(error => console.error("Error setting auth persistence:", error));
+  
+      const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          setUser(user);
+          try {
+            const idToken = await user.getIdToken(true);
+            const response = await fetch(`${API_URL}/api/auth/me`, {
+              headers: { 'Authorization': `Bearer ${idToken}` }
+            });
+  
+            if (response.ok) {
+              const userData = await response.json();
+              console.log("✅ User data received:", userData);
+              setIsOnboardingComplete(userData.isOnboardingComplete || false);
+            } else {
+              if (response.status === 404) {
+                await auth.signOut();
+                setUser(null);
+              }
             }
-          });
-
-          if (response.ok) {
-            const userData = await response.json();
-            setIsOnboardingComplete(userData.isOnboardingComplete || false);
-          } else {
-            if (response.status === 404) {
-              await auth.signOut();
-              setUser(null);
-            }
+          } catch (error) {
+            console.error('Error fetching user data:', error);
+            setIsOnboardingComplete(false);
           }
-        } catch (error) {
-          console.error('Error fetching user data:', error);
+        } else {
+          setUser(null);
           setIsOnboardingComplete(false);
         }
-      } else {
-        setUser(null);
-        setIsOnboardingComplete(false);
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+        setLoading(false);
+      });
+  
+      return () => unsubscribe();
+    };
+  
+    fetchUserData();
   }, []);
+  
+  
 
   if (loading) {
     return <div className="loading-container">Loading...</div>;
@@ -77,6 +79,7 @@ function App() {
           <Route path="/home" element={!user ? <Navigate to="/" replace /> : !isOnboardingComplete ? <Navigate to="/onboarding" replace /> : <Home />} />
           <Route path="/onboarding" element={!user ? <Navigate to="/" replace /> : isOnboardingComplete ? <Navigate to="/home" replace /> : <OnboardingQuestionnaire />} />
           <Route path="/recommendations" element={<ExerciseRecommendations />} />
+          <Route path="/full-recommendation" element={<FullRecommendation />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

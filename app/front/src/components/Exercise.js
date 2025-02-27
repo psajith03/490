@@ -1,111 +1,70 @@
+import styled from 'styled-components';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
 import { auth } from '../firebase';
-
-const workoutSplits = {
-  "Full Body": ["legs", "back", "chest", "shoulders", "arms", "core"],
-  "Upper/Lower": ["upper arms", "lower legs"],
-  "Push/Pull/Legs": ["chest", "shoulders", "triceps", "back", "biceps", "quads", "hamstrings", "calves"]
-};
 
 const Exercise = () => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [selectedSplit, setSelectedSplit] = useState("");
-  const [exerciseData, setExerciseData] = useState({});
-  const [planGenerated, setPlanGenerated] = useState(false);
+  const [workoutPlan, setWorkoutPlan] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const idToken = await auth.currentUser?.getIdToken(true);
-        if (!idToken) {
-          console.warn("No authentication token available.");
-          return;
-        }
-        
+        if (!idToken) return;
+
         const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
         const res = await fetch(`${API_URL}/api/auth/me`, {
-        method: "GET",
-        headers: {
+          method: "GET",
+          headers: {
             "Authorization": `Bearer ${idToken}`,
             "Content-Type": "application/json"
-        }
+          }
         });
-
-
-        // Debugging: Log full response
-        const textResponse = await res.text();
-        console.log("Raw response from /api/auth/me:", textResponse);
-        
-        // Attempt to parse JSON
-        try {
-          const data = JSON.parse(textResponse);
-          console.log("Parsed user data:", data);
-          setUserData(data);
-        } catch (jsonError) {
-          console.error("Failed to parse JSON from /api/auth/me. Response was:", textResponse);
-        }
+        const data = await res.json();
+        setUserData(data);
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchUserData();
   }, []);
 
-  const fetchExercises = async (part) => {
-    const url = `https://exercisedb.p.rapidapi.com/exercises/bodyPart/${part}`;
-    const options = {
-      method: 'GET',
-      headers: {
-        'x-rapidapi-key': process.env.REACT_APP_RAPIDAPI_KEY,
-        'x-rapidapi-host': 'exercisedb.p.rapidapi.com'
-      }
-    };
-
-    try {
-      const response = await fetch(url, options);
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      const result = await response.json();
-      console.log(`Fetched exercises for ${part}:`, result);
-      return result.slice(0, 3);
-    } catch (error) {
-      console.error("Error fetching exercises:", error);
-      return [];
-    }
-  };
-
-  const generateWorkoutPlan = async () => {
-    console.log("Generating workout plan...");
-    console.log("Selected Split:", selectedSplit);
-    console.log("User Data:", userData);
-    
-    if (!selectedSplit || !userData) {
-      console.warn("Workout split or user data is missing");
+  const fetchWorkoutPlan = async () => {
+    if (!selectedSplit) {
+      alert("Please select a workout split.");
       return;
     }
-    const workoutParts = workoutSplits[selectedSplit];
-    const generatedData = {};
-
-    for (const part of workoutParts) {
-      generatedData[part] = await fetchExercises(part);
+  
+    try {
+      const API_URL = "http://localhost:5000";
+      console.log(`📡 Fetching workout plan from: ${API_URL}/api/full_recommendation?split_type=${selectedSplit}`);
+  
+      const response = await fetch(`${API_URL}/api/full_recommendation?split_type=${selectedSplit}`);
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`❌ Failed to fetch workout plan. Server response: ${errorText}`);
+        throw new Error(`Failed to fetch workout plan: ${errorText}`);
+      }
+  
+      const data = await response.json();
+      console.log("✅ Workout plan received:", data);
+      
+      setWorkoutPlan(data.workout_plan || {}); // ✅ Ensures no error if `workout_plan` is missing
+    } catch (error) {
+      console.error("🚨 Error fetching workout plan:", error.message);
     }
-
-    console.log("Generated workout plan:", generatedData);
-    setExerciseData(generatedData);
-    setPlanGenerated(true);
   };
+  
+  
 
-  if (loading) {
-    return <p>Loading user data...</p>;
-  }
+  if (loading) return <p>Loading user data...</p>;
 
   return (
     <ExerciseWrapper>
@@ -115,40 +74,31 @@ const Exercise = () => {
       </Header>
       <Content>
         <h1>Create Your Workout Plan</h1>
-        <h3>Welcome, {userData?.preferredName || "User"}!</h3>
-        <p>Based on your fitness level ({userData?.experienceLevel || "Unknown"}), we recommend a {selectedSplit || "customized"} split.</p>
         <label>Select Workout Split:</label>
         <select value={selectedSplit} onChange={(e) => setSelectedSplit(e.target.value)}>
           <option value="">Select Split</option>
-          {Object.keys(workoutSplits).map(split => (
-            <option key={split} value={split}>{split}</option>
-          ))}
+          <option value="total_body">Total Body Split</option>
+          <option value="upper_lower">Upper vs. Lower Split</option>
+          <option value="push_pull_legs">Push vs. Pull vs. Legs Split</option>
+          <option value="bro_split">Bro Split</option>
         </select>
-        <button onClick={generateWorkoutPlan}>Generate Plan</button>
-
-        {planGenerated && (
-          <div>
-            <h2>Generated Workout Plan</h2>
-            {Object.entries(exerciseData).map(([part, exercises]) => (
-              <div key={part}>
-                <h3>{part.toUpperCase()}</h3>
-                <ul>
-                  {exercises.map(exercise => (
-                    <li key={exercise.id}>{exercise.name}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+        <button onClick={fetchWorkoutPlan}>Generate Plan</button>
+        {Object.entries(workoutPlan).map(([day, exercises]) => (
+          <div key={day}>
+            <h3>{day.toUpperCase()}</h3>
+            <ul>
+              {exercises.map((exercise, index) => (
+                <li key={index}>{exercise}</li>
+              ))}
+            </ul>
           </div>
-        )}
+        ))}
       </Content>
     </ExerciseWrapper>
   );
 };
 
 export default Exercise;
-
-
 
 const ExerciseWrapper = styled.div`
   display: flex;

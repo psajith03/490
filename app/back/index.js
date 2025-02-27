@@ -1,44 +1,46 @@
-// app/back/index.js
-const express = require('express');
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const admin = require('firebase-admin');
+const express = require("express");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const admin = require("firebase-admin");
 
-// Load environment variables
 dotenv.config();
 console.log("MongoDB URI:", process.env.MONGODB_URI);
 
-// Initialize Express app
 const app = express();
 
-// Middleware
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:3000",
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 app.use(express.json());
 
-// Firebase Admin Setup
-const serviceAccount = require(process.env.FIREBASE_CREDENTIALS);
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+if (!admin.apps.length) {
+  try {
+    const serviceAccount = require("./firebaseServiceAccount.json");
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+    console.log("Firebase Admin Initialized");
+  } catch (error) {
+    console.error("Firebase Admin Initialization Failed:", error.message);
+  }
+}
+
+const authRoutes = require("./routes/auth");
+const exerciseRoutes = require("./routes/exercise");
+
+app.get("/", (req, res) => {
+  res.json({ message: "Backend server is running!" });
 });
 
-// Import routes
-const authRoutes = require('./routes/auth');
+app.use("/api/auth", authRoutes);
+app.use("/api", exerciseRoutes);
 
-// Test route
-app.get('/', (req, res) => {
-  res.json({ message: 'Backend server is running!' });
-});
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log("MongoDB Connected"))
+  .catch((err) => console.error("MongoDB Connection Error:", err));
 
-// Use routes
-app.use('/api/auth', authRoutes);
-
-// MongoDB connection
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-  .then(() => console.log('MongoDB connected'))
-  .catch((err) => console.error('MongoDB connection error:', err));
-
-module.exports = app; // Export the Express app instead of starting the server
+module.exports = app;

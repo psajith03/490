@@ -11,7 +11,6 @@ const Diet = () => {
   const [nutritionData, setNutritionData] = useState(null);
   const [recipeSuggestions, setRecipeSuggestions] = useState([]);
   
-  // Add ingredient
   const addIngredient = () => {
     if (input.trim() !== '') {
       setIngredients([...ingredients, input.trim()]);
@@ -19,11 +18,9 @@ const Diet = () => {
     }
   };
   
-  // Fetch nutritional data and recipes from Spoonacular
   const fetchNutritionAndRecipes = async () => {
     if (ingredients.length === 0) return;
     
-    // Get nutrition summary
     const nutritionResponse = await fetch(`https://api.spoonacular.com/recipes/guessNutrition?title=${ingredients.join(',')}&apiKey=${SPOONACULAR_API_KEY}`);
     const nutritionData = await nutritionResponse.json();
     setNutritionData({
@@ -36,7 +33,6 @@ const Diet = () => {
     const recipeResponse = await fetch(`https://api.spoonacular.com/recipes/findByIngredients?ingredients=${ingredients.join(',')}&number=1&apiKey=${SPOONACULAR_API_KEY}`);
     const recipes = await recipeResponse.json();
 
-    // Fetch full recipe details to get URLs
     const detailedRecipes = await Promise.all(
       recipes.map(async (recipe) => {
         const detailsResponse = await fetch(`https://api.spoonacular.com/recipes/${recipe.id}/information?apiKey=${SPOONACULAR_API_KEY}`);

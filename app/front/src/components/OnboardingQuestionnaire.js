@@ -232,65 +232,51 @@ const OnboardingQuestionnaire = () => {
 
     return true;
   };
-
   const handleSubmit = async () => {
-    if (!validateForm()) return;
-  
-    // Ensure user is authenticated
     if (!auth.currentUser) {
       console.error("Authentication error: No current user found.");
       alert("Session expired. Please log in again.");
-      navigate('/'); // Redirect to login page
+      navigate('/');
       return;
     }
   
     try {
       const idToken = await auth.currentUser.getIdToken(true);
+      console.log("Sending ID Token:", idToken);
   
-      // Convert height from inches to cm and weight from lbs to kg
-      const convertedData = {
-        ...formData,
-        height: formData.height ? Math.round(formData.height * 2.54) : null, // inches to cm
-        weight: formData.weight ? Math.round(formData.weight * 0.453592) : null // lbs to kg
-      };
+      const apiBase = "http://localhost:5000";
+      
+      console.log("Submitting form data:", JSON.stringify(formData, null, 2));
   
-      console.log("Submitting profile data:", convertedData);
-      console.log("ID Token:", idToken);
-  
-      const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-  
-      // Submit profile data
       const response = await fetch(`${apiBase}/api/auth/update-profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${idToken}`
         },
-        body: JSON.stringify(convertedData)
+        body: JSON.stringify(formData)
       });
   
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save profile data');
+        const errorText = await response.text();
+        throw new Error(`Failed to save profile data. Server response: ${errorText}`);
       }
   
-      // Fetch updated user data
       const userResponse = await fetch(`${apiBase}/api/auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${idToken}`
-        }
+        headers: { 'Authorization': `Bearer ${idToken}` }
       });
   
       if (!userResponse.ok) {
-        throw new Error('Failed to fetch updated user data');
+        const errorText = await userResponse.text();
+        throw new Error(`Failed to fetch updated user data. Server response: ${errorText}`);
       }
   
       const userData = await userResponse.json();
+      console.log("Updated user data received:", userData);
   
       if (userData.isOnboardingComplete) {
-        console.log("Onboarding is complete:", userData);
-        setIsComplete(true);
-        window.location.reload();
+        console.log("Onboarding complete! Navigating to home...");
+        navigate('/home');
       } else {
         console.warn("Onboarding still incomplete after update:", userData);
       }
@@ -299,8 +285,6 @@ const OnboardingQuestionnaire = () => {
       alert(`Error: ${error.message}`);
     }
   };
-  
-  
   
   
 
