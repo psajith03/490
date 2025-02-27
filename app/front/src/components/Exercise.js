@@ -14,11 +14,20 @@ const Exercise = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
+      console.log("Fetching user data...");
+  
       try {
         const idToken = await auth.currentUser?.getIdToken(true);
-        if (!idToken) return;
-
-        const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
+        if (!idToken) {
+          console.warn("⚠️ No ID token available. User may not be authenticated.");
+          setLoading(false);
+          return;
+        }
+  
+        const API_URL = "http://localhost:5000";
+        console.log(`🔍 Requesting user data from: ${API_URL}/api/auth/me`);
+  
+        const startTime = Date.now();
         const res = await fetch(`${API_URL}/api/auth/me`, {
           method: "GET",
           headers: {
@@ -26,7 +35,18 @@ const Exercise = () => {
             "Content-Type": "application/json"
           }
         });
+  
+        const duration = Date.now() - startTime;
+        console.log(`User data fetched in ${duration}ms`);
+  
+        if (!res.ok) {
+          console.error(`Failed to fetch user data: ${res.statusText}`);
+          setLoading(false);
+          return;
+        }
+  
         const data = await res.json();
+        console.log("📦 User data received:", data);
         setUserData(data);
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -34,8 +54,10 @@ const Exercise = () => {
         setLoading(false);
       }
     };
+  
     fetchUserData();
   }, []);
+  
 
   const fetchWorkoutPlan = async () => {
     if (!selectedSplit) {
@@ -68,8 +90,12 @@ const Exercise = () => {
     setExerciseLoading(true);
     try {
       const API_URL = `http://localhost:5000/api/exercise/${encodeURIComponent(exerciseName)}`;
+      console.log("Fetching:", API_URL);
       const res = await fetch(API_URL);
+      if (!res.ok) throw new Error(`Error fetching exercise: ${res.statusText}`);
+
       const data = await res.json();
+      console.log("Received exercise data:", data);
       setSelectedExercise(data);
     } catch (error) {
       console.error("Error fetching exercise details:", error);
@@ -124,10 +150,18 @@ const Exercise = () => {
       {selectedExercise && (
         <ExerciseCard>
           <h2>{selectedExercise.name}</h2>
-          {selectedExercise.gifUrl ? (
+          {}
+          {selectedExercise.gifUrl && selectedExercise.gifUrl.includes(".gif") ? (
             <img src={selectedExercise.gifUrl} alt={selectedExercise.name} />
           ) : (
-            <p>No GIF available</p>
+            <WatchVideoButton
+              onClick={() => {
+                const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(selectedExercise.name + " exercise")}`;
+                window.open(youtubeSearchUrl, "_blank", "noopener,noreferrer");
+              }}
+            >
+              🎥 Watch Exercise Video
+            </WatchVideoButton>
           )}
           <p><strong>Target Muscle:</strong> {selectedExercise.target || "N/A"}</p>
           <p><strong>Equipment:</strong> {selectedExercise.equipment || "N/A"}</p>
@@ -143,6 +177,7 @@ const Exercise = () => {
           </ul>
           <CloseButton onClick={() => setSelectedExercise(null)}>Close</CloseButton>
         </ExerciseCard>
+
       )}
     </ExerciseWrapper>
   );
@@ -150,6 +185,24 @@ const Exercise = () => {
 
 export default Exercise;
 
+
+
+const WatchVideoButton = styled.button`
+  margin-top: 10px;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  background: #ff0000;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+
+  &:hover {
+    background: darkred;
+  }
+`;
 
 const ExerciseCard = styled.div`
   position: fixed;
