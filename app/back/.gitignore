@@ -1,0 +1,32 @@
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Environment variables
+.env
+firebaseServiceAccount.json
+
+# Logs
+logs
+*.log
+logs/*
+debug.log
+*.out
+*.pid
+*.seed
+
+# Database dumps
+*.sqlite
+*.db
+*.sql
+
+# Compiled output
+dist/
+build/
+.DS_Store
+
+# Editor-specific files
+.vscode/
+.idea/
+*.swp
