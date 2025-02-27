@@ -232,6 +232,7 @@ const OnboardingQuestionnaire = () => {
 
     return true;
   };
+
   const handleSubmit = async () => {
     if (!auth.currentUser) {
       console.error("Authentication error: No current user found.");
@@ -239,15 +240,15 @@ const OnboardingQuestionnaire = () => {
       navigate('/');
       return;
     }
-  
+
     try {
       const idToken = await auth.currentUser.getIdToken(true);
       console.log("Sending ID Token:", idToken);
-  
+
       const apiBase = "http://localhost:5000";
       
       console.log("Submitting form data:", JSON.stringify(formData, null, 2));
-  
+
       const response = await fetch(`${apiBase}/api/auth/update-profile`, {
         method: 'POST',
         headers: {
@@ -256,37 +257,42 @@ const OnboardingQuestionnaire = () => {
         },
         body: JSON.stringify(formData)
       });
-  
+
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Failed to save profile data. Server response: ${errorText}`);
       }
-  
+
       const userResponse = await fetch(`${apiBase}/api/auth/me`, {
         headers: { 'Authorization': `Bearer ${idToken}` }
       });
-  
+
       if (!userResponse.ok) {
         const errorText = await userResponse.text();
         throw new Error(`Failed to fetch updated user data. Server response: ${errorText}`);
       }
-  
+
       const userData = await userResponse.json();
       console.log("Updated user data received:", userData);
-  
+
       if (userData.isOnboardingComplete) {
-        console.log("Onboarding complete! Navigating to home...");
+        console.log("✅ Onboarding complete! Navigating to home...");
+
+        // ✅ Navigate first to ensure React Router updates properly
         navigate('/home');
+
+        // ✅ Force a refresh to ensure new user data is loaded
+        setTimeout(() => {
+          window.location.reload();
+        }, 500); // Small delay to allow navigation before refreshing
       } else {
-        console.warn("Onboarding still incomplete after update:", userData);
+        console.warn("⚠️ Onboarding still incomplete after update:", userData);
       }
     } catch (error) {
-      console.error('Error saving questionnaire:', error);
+      console.error('🚨 Error saving questionnaire:', error);
       alert(`Error: ${error.message}`);
     }
   };
-  
-  
 
   const renderField = (field) => {
     switch (field.type) {

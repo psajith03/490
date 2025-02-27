@@ -116,12 +116,12 @@ const PageWrapper = styled.div`
 
 
 const Header = styled.div`
-  position: fixed; /* ✅ Keeps it at the top */
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 60px;
-  background-color: #fff; /* Dark background */
+  background-color: #fff;
   color: black;
   display: flex;
   align-items: center;

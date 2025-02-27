@@ -45,7 +45,7 @@ const Home = () => {
           navigate('/');
         }
       } catch (error) {
-        console.error('🚨 Error fetching user data:', error);
+        console.error('Error fetching user data:', error);
         navigate('/');
       } finally {
         setLoading(false);

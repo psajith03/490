@@ -36,7 +36,7 @@ function App() {
   
             if (response.ok) {
               const userData = await response.json();
-              console.log("✅ User data received:", userData);
+              console.log("User data received:", userData);
               setIsOnboardingComplete(userData.isOnboardingComplete || false);
             } else {
               if (response.status === 404) {
