@@ -7,6 +7,7 @@ const OnboardingQuestionnaire = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
+    preferredName: '',
     age: '',
     gender: '',
     height: '',
@@ -30,6 +31,12 @@ const OnboardingQuestionnaire = () => {
       id: 'basicInfo',
       title: 'Basic Information',
       fields: [
+        {
+          name: 'preferredName',
+          label: 'Preferred Name or Nickname',
+          type: 'text',
+          placeholder: 'Enter your preferred name'
+        },
         {
           name: 'age',
           label: 'Age',

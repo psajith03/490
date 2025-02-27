@@ -39,14 +39,32 @@ router.get('/me', authenticate, async (req, res) => {
       return res.status(404).json({ error: 'User profile not found. Please complete registration.' });
     }
 
-    res.json(user);
+    res.json({
+      preferredName: user.preferredName || "",  // Ensure it never returns undefined
+      name: user.name,
+      email: user.email,
+      age: user.age,
+      gender: user.gender,
+      height: user.height,
+      weight: user.weight,
+      activityLevel: user.activityLevel,
+      fitnessGoals: user.fitnessGoals,
+      experienceLevel: user.experienceLevel,
+      dietaryRestrictions: user.dietaryRestrictions,
+      injuries: user.injuries,
+      medicalConditions: user.medicalConditions,
+      workoutFrequency: user.workoutFrequency,
+      preferredWorkoutTime: user.preferredWorkoutTime,
+      equipmentAccess: user.equipmentAccess,
+      sleepSchedule: user.sleepSchedule,
+      stressLevel: user.stressLevel,
+      isOnboardingComplete: user.isOnboardingComplete
+    });
   } catch (error) {
     console.error("Error retrieving user profile:", error);
     res.status(500).json({ error: 'Internal Server Error while fetching user data' });
   }
 });
-
-
 
 // Update profile route
 router.post('/update-profile', authenticate, async (req, res) => {
@@ -74,6 +92,9 @@ router.post('/update-profile', authenticate, async (req, res) => {
       });
     }
 
+    // Ensure preferredName is stored
+    user.preferredName = req.body.preferredName || user.preferredName;
+
     // Update user with questionnaire data
     Object.assign(user, {
       ...req.body,
@@ -88,5 +109,6 @@ router.post('/update-profile', authenticate, async (req, res) => {
     res.status(500).json({ error: error.message || 'Error updating profile' });
   }
 });
+
 
 module.exports = router; 

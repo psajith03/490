@@ -33,7 +33,7 @@ const Form = () => {
     return ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.default;
   };
 
-  const handleLogin = async (e) => {
+    const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
