@@ -9,6 +9,8 @@ const Exercise = () => {
   const [selectedSplit, setSelectedSplit] = useState("");
   const [workoutPlan, setWorkoutPlan] = useState({});
   const [loading, setLoading] = useState(true);
+  const [selectedExercise, setSelectedExercise] = useState(null);
+  const [exerciseLoading, setExerciseLoading] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -62,6 +64,20 @@ const Exercise = () => {
     }
   };
 
+  const fetchExerciseDetails = async (exerciseName) => {
+    setExerciseLoading(true);
+    try {
+      const API_URL = `http://localhost:5000/api/exercise/${encodeURIComponent(exerciseName)}`;
+      const res = await fetch(API_URL);
+      const data = await res.json();
+      setSelectedExercise(data);
+    } catch (error) {
+      console.error("Error fetching exercise details:", error);
+    } finally {
+      setExerciseLoading(false);
+    }
+  };
+
   if (loading) return <p>Loading user data...</p>;
 
   return (
@@ -91,7 +107,7 @@ const Exercise = () => {
                   <h4>{category.toUpperCase()}</h4>
                   <ul>
                     {exercises.map((exercise, index) => (
-                      <li key={index}>{exercise}</li>
+                      <li key={index} onClick={() => fetchExerciseDetails(exercise)}>{exercise}</li>
                     ))}
                   </ul>
                 </WorkoutColumn>
@@ -102,10 +118,88 @@ const Exercise = () => {
           <p>No workout plan available yet. Please generate one.</p>
         )}
       </Content>
+
+      {exerciseLoading && <p>Loading exercise details...</p>}
+
+      {selectedExercise && (
+        <ExerciseCard>
+          <h2>{selectedExercise.name}</h2>
+          {selectedExercise.gifUrl ? (
+            <img src={selectedExercise.gifUrl} alt={selectedExercise.name} />
+          ) : (
+            <p>No GIF available</p>
+          )}
+          <p><strong>Target Muscle:</strong> {selectedExercise.target || "N/A"}</p>
+          <p><strong>Equipment:</strong> {selectedExercise.equipment || "N/A"}</p>
+          <h4>Instructions:</h4>
+          <ul>
+            {selectedExercise.instructions?.length > 0 ? (
+              selectedExercise.instructions.map((step, index) => (
+                <li key={index}>{step}</li>
+              ))
+            ) : (
+              <li>No instructions available</li>
+            )}
+          </ul>
+          <CloseButton onClick={() => setSelectedExercise(null)}>Close</CloseButton>
+        </ExerciseCard>
+      )}
     </ExerciseWrapper>
   );
 };
+
 export default Exercise;
+
+
+const ExerciseCard = styled.div`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  color: black;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  z-index: 1001;
+  width: 400px;
+
+  img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-top: 10px;
+  }
+
+  ul {
+    text-align: left;
+    padding-left: 20px;
+  }
+
+  li {
+    margin-bottom: 5px;
+  }
+`;
+
+const CloseButton = styled.button`
+  margin-top: 10px;
+  padding: 10px;
+  border: none;
+  background: red;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+  width: 100%;
+  text-align: center;
+  font-weight: bold;
+  transition: 0.3s;
+
+  &:hover {
+    background: darkred;
+  }
+`;
 
 const ExerciseWrapper = styled.div`
   display: flex;
