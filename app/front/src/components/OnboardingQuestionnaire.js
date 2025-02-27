@@ -278,13 +278,11 @@ const OnboardingQuestionnaire = () => {
       if (userData.isOnboardingComplete) {
         console.log("✅ Onboarding complete! Navigating to home...");
 
-        // ✅ Navigate first to ensure React Router updates properly
         navigate('/home');
 
-        // ✅ Force a refresh to ensure new user data is loaded
         setTimeout(() => {
           window.location.reload();
-        }, 500); // Small delay to allow navigation before refreshing
+        }, 500);
       } else {
         console.warn("⚠️ Onboarding still incomplete after update:", userData);
       }

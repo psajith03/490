@@ -2,7 +2,7 @@ const express = require("express");
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
-const csvParser = require("csv-parser"); // Library for parsing CSV
+const csvParser = require("csv-parser");
 
 const router = express.Router();
 const PYTHON_API = "http://127.0.0.1:5001";
