@@ -3,12 +3,16 @@
   │   ├── /public                  # Public assets (index.html, icons, etc.)
   │   ├── /src                     # Frontend source code
   │   │   ├── /components          # React components
+  │   │   │   ├── Daily.js
+  │   │   │   ├── Diet.js
+  │   │   │   ├── Exercise.js
+  │   │   │   ├── ExerciseRecommendation.js
   │   │   │   ├── Form.js
-  │   │   │   ├── GlowingButton.js
+  │   │   │   ├── FullRecommendation.js
   │   │   │   ├── Home.js
-  │   │   │   ├── Login.js         # Login component (Firebase Auth)
+  │   │   │   ├── Login.js         
   │   │   │   ├── OnboardingQuestionnaire.js
-  │   │   │   ├── TerminalLoader.js
+  │   │   │   ├── Sleep.js
   │   │   ├── /styles              # CSS styles
   │   │   │   ├── App.css
   │   │   │   ├── index.css
