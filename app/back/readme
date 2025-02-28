@@ -5,6 +5,7 @@
   │   ├── /models                  # Database models (Mongoose schemas)
   │   ├── /routes                  # API routes
   │   │   ├── auth.js              # Authentication routes
+  │   │   ├── exercise.js          # Exercise Page routes
   │   ├── firebase.js              # Firebase Admin setup
   │   ├── index.js                 # Main Express app
   │   ├── server.js                # Starts the server
