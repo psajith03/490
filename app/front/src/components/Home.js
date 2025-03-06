@@ -82,7 +82,7 @@ const Home = () => {
       <HomeWrapper>
         <Frame>
           <LeftBar onClick={() => navigate('/daily')}>DAILY</LeftBar>
-          <TopBar onClick={() => navigate('/exercise')}>EXERCISE</TopBar> 
+          <TopBar onClick={() => navigate('/exercise-home')}>EXERCISE</TopBar> 
           <RightBar onClick={() => navigate('/sleep')}>SLEEP</RightBar>
           <BottomBar onClick={() => navigate('/diet')}>DIET</BottomBar>
 

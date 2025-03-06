@@ -90,12 +90,8 @@ const Exercise = () => {
     setExerciseLoading(true);
     try {
       const API_URL = `http://localhost:5000/api/exercise/${encodeURIComponent(exerciseName)}`;
-      console.log("Fetching:", API_URL);
       const res = await fetch(API_URL);
-      if (!res.ok) throw new Error(`Error fetching exercise: ${res.statusText}`);
-
       const data = await res.json();
-      console.log("Received exercise data:", data);
       setSelectedExercise(data);
     } catch (error) {
       console.error("Error fetching exercise details:", error);
@@ -110,7 +106,9 @@ const Exercise = () => {
     <ExerciseWrapper>
       <Header>
         <span>Exercise</span>
-        <HomeButton onClick={() => navigate('/')}>Home</HomeButton>
+        <ButtonContainer>
+          <HomeButton onClick={() => navigate('/exercise-home')}>Back to Exercise Home</HomeButton>
+        </ButtonContainer>
       </Header>
       <Content>
         <h1>Create Your Workout Plan</h1>
@@ -123,7 +121,7 @@ const Exercise = () => {
           <option value="bro_split">Bro Split</option>
         </select>
         <button onClick={fetchWorkoutPlan}>Generate Plan</button>
-
+  
         {workoutPlan && Object.keys(workoutPlan).length > 0 ? (
           <WorkoutPlanContainer>
             <h3>Your Workout Plan:</h3>
@@ -144,27 +142,33 @@ const Exercise = () => {
           <p>No workout plan available yet. Please generate one.</p>
         )}
       </Content>
-
+  
       {exerciseLoading && <p>Loading exercise details...</p>}
-
+  
       {selectedExercise && (
         <ExerciseCard>
           <h2>{selectedExercise.name}</h2>
-          {}
-          {selectedExercise.gifUrl && selectedExercise.gifUrl.includes(".gif") ? (
-            <img src={selectedExercise.gifUrl} alt={selectedExercise.name} />
-          ) : (
-            <WatchVideoButton
-              onClick={() => {
-                const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(selectedExercise.name + " exercise")}`;
-                window.open(youtubeSearchUrl, "_blank", "noopener,noreferrer");
+  
+          {/* ✅ Debug GIF URL */}
+          {console.log("🖼️ Received GIF URL:", selectedExercise.gifUrl)}
+  
+          {/* ✅ Display ExerciseDB GIF only if it's valid */}
+          {selectedExercise.gifUrl ? (
+            <img 
+              src={selectedExercise.gifUrl} 
+              alt={selectedExercise.name} 
+              onError={(e) => {
+                console.error("❌ Failed to load GIF:", e.target.src);
+                e.target.style.display = "none"; // Hide broken image
               }}
-            >
-              🎥 Watch Exercise Video
-            </WatchVideoButton>
+            />
+          ) : (
+            <p><strong>❌ No GIF available for this exercise.</strong></p>
           )}
+  
           <p><strong>Target Muscle:</strong> {selectedExercise.target || "N/A"}</p>
           <p><strong>Equipment:</strong> {selectedExercise.equipment || "N/A"}</p>
+  
           <h4>Instructions:</h4>
           <ul>
             {selectedExercise.instructions?.length > 0 ? (
@@ -175,16 +179,21 @@ const Exercise = () => {
               <li>No instructions available</li>
             )}
           </ul>
+  
           <CloseButton onClick={() => setSelectedExercise(null)}>Close</CloseButton>
         </ExerciseCard>
-
       )}
     </ExerciseWrapper>
   );
+  
 };
 
 export default Exercise;
 
+const ButtonContainer = styled.div`
+  display: flex;
+  gap: 10px; /* Spacing between buttons */
+`;
 
 
 const WatchVideoButton = styled.button`

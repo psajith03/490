@@ -39,7 +39,7 @@ const Form = () => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
-      const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const apiBase = 'http://localhost:5000';
       const idToken = await userCredential.user.getIdToken();
 
       fetch(`${apiBase}/api/auth/me`, {

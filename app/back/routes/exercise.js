@@ -73,50 +73,40 @@ router.get("/exercise/:name", async (req, res) => {
   console.log(`📩 Received request for exercise: "${name}"`);
 
   try {
-    console.log("🌐 Attempting API fetch...");
-    const response = await axios.get(`${EXERCISE_DB_API_URL}/${encodeURIComponent(name)}`, {
+    console.log("🌐 Attempting API fetch from ExerciseDB...");
+    const response = await axios.get(`${process.env.API_URL}/${encodeURIComponent(name)}`, {
       headers: {
-        "X-RapidAPI-Key": API_KEY,
+        "X-RapidAPI-Key": process.env.API_KEY,  // Ensure API_KEY is loaded
         "X-RapidAPI-Host": "exercisedb.p.rapidapi.com",
       },
       params: { limit: 1 },
     });
 
     if (response.data && response.data.length > 0) {
-      console.log("Found exercise in ExerciseDB:", response.data[0].name);
+      const exercise = response.data[0];
+
+      console.log("✅ Found exercise in ExerciseDB:", exercise.name);
+      console.log("🖼️ ExerciseDB GIF URL:", exercise.gifUrl || "❌ No GIF available");
+
       return res.json({
-        name: response.data[0].name,
-        gifUrl: response.data[0].gifUrl || `https://www.youtube.com/results?search_query=${encodeURIComponent(response.data[0].name + " exercise")}`,
-        target: response.data[0].target,
-        secondaryMuscles: response.data[0].secondaryMuscles || [],
-        equipment: response.data[0].equipment || "N/A",
-        instructions: response.data[0].instructions || ["No instructions available"],
+        name: exercise.name,
+        gifUrl: exercise.gifUrl && exercise.gifUrl.includes("http") ? exercise.gifUrl : null, // ✅ Ensure GIF is valid
+        target: exercise.target,
+        equipment: exercise.equipment || "N/A",
+        instructions: exercise.instructions || ["No instructions available"],
       });
     } else {
       console.warn("⚠️ ExerciseDB API returned no results.");
+      return res.status(404).json({ error: "Exercise not found in ExerciseDB." });
     }
   } catch (error) {
-    console.error("ExerciseDB API request failed:", error.message);
+    console.error("❌ ExerciseDB API request failed:", error.message);
+    return res.status(500).json({ error: "Failed to fetch exercise details." });
   }
-
-  console.log("🔍 Checking local CSV fallback...");
-  const localExercise = findExerciseLocally(name);
-  if (localExercise) {
-    console.log("Found exercise in CSV:", localExercise.name);
-    const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(localExercise.name + " workout")}`;
-    
-    return res.json({
-      name: localExercise.name,
-      gifUrl: youtubeSearchUrl,
-      target: localExercise.target,
-      equipment: localExercise.equipment,
-      instructions: [localExercise.instructions],
-    });
-  }
-
-  console.warn(`Exercise "${name}" not found in API or CSV.`);
-  return res.status(404).json({ error: "Exercise not found in both API and local database." });
 });
+
+
+
 
 
 module.exports = router;

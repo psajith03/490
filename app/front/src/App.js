@@ -10,6 +10,7 @@ import Exercise from './components/Exercise';
 import Sleep from './components/Sleep';
 import Daily from './components/Daily';
 import Diet from './components/Diet';
+import ExerciseHome from './components/ExerciseHome';
 import './App.css';
 import FullRecommendation from "./components/FullRecommendation";
 const API_URL = "http://localhost:5000";
@@ -72,6 +73,7 @@ function App() {
       <div className="App">
         <Routes>
           <Route path="/" element={user ? (isOnboardingComplete ? <Navigate to="/home" replace /> : <Navigate to="/onboarding" replace />) : <Form />} />
+          <Route path="/exercise-home" element={<ExerciseHome />} />
           <Route path="/exercise" element={<Exercise />} />
           <Route path="/sleep" element={<Sleep />} /> 
           <Route path="/daily" element={<Daily />} />
