@@ -19,13 +19,13 @@ const Exercise = () => {
       try {
         const idToken = await auth.currentUser?.getIdToken(true);
         if (!idToken) {
-          console.warn("⚠️ No ID token available. User may not be authenticated.");
+          console.warn("No ID token available. User may not be authenticated.");
           setLoading(false);
           return;
         }
   
         const API_URL = "http://localhost:5000";
-        console.log(`🔍 Requesting user data from: ${API_URL}/api/auth/me`);
+        console.log(`Requesting user data from: ${API_URL}/api/auth/me`);
   
         const startTime = Date.now();
         const res = await fetch(`${API_URL}/api/auth/me`, {
@@ -46,7 +46,7 @@ const Exercise = () => {
         }
   
         const data = await res.json();
-        console.log("📦 User data received:", data);
+        console.log("User data received:", data);
         setUserData(data);
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -150,7 +150,7 @@ const Exercise = () => {
           <h2>{selectedExercise.name}</h2>
   
           {/* ✅ Debug GIF URL */}
-          {console.log("🖼️ Received GIF URL:", selectedExercise.gifUrl)}
+          {console.log("Received GIF URL:", selectedExercise.gifUrl)}
   
           {/* ✅ Display ExerciseDB GIF only if it's valid */}
           {selectedExercise.gifUrl ? (
@@ -158,12 +158,12 @@ const Exercise = () => {
               src={selectedExercise.gifUrl} 
               alt={selectedExercise.name} 
               onError={(e) => {
-                console.error("❌ Failed to load GIF:", e.target.src);
+                console.error("Failed to load GIF:", e.target.src);
                 e.target.style.display = "none"; // Hide broken image
               }}
             />
           ) : (
-            <p><strong>❌ No GIF available for this exercise.</strong></p>
+            <p><strong>No GIF available for this exercise.</strong></p>
           )}
   
           <p><strong>Target Muscle:</strong> {selectedExercise.target || "N/A"}</p>

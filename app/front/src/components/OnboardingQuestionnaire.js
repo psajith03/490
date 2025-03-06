@@ -284,7 +284,7 @@ const OnboardingQuestionnaire = () => {
           window.location.reload();
         }, 500);
       } else {
-        console.warn("⚠️ Onboarding still incomplete after update:", userData);
+        console.warn("Onboarding still incomplete after update:", userData);
       }
     } catch (error) {
       console.error('🚨 Error saving questionnaire:', error);
