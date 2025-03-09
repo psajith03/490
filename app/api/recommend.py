@@ -5,9 +5,6 @@ from preprocess import load_and_preprocess
 similarity_matrix = train_model()
 
 def recommend_exercises(exercise_name, top_n=5):
-    """
-    Returns the top N similar exercises, excluding the exercise itself.
-    """
     exercise_name = exercise_name.lower().strip()
 
     if exercise_name not in similarity_matrix.index:
@@ -19,9 +16,6 @@ def recommend_exercises(exercise_name, top_n=5):
     return similar_exercises.index.tolist()
 
 def get_popular_exercises(muscle_group, top_n=5):
-    """
-    Returns the most popular exercises for a given muscle group.
-    """
     df = load_and_preprocess()
     muscle_group = muscle_group.lower().strip()
 

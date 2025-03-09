@@ -1,11 +1,6 @@
 import pandas as pd
 
 def load_and_preprocess():
-    """
-    Loads and cleans the megaGymDataset.
-    Fixes missing values and ensures correct data types.
-    Returns a cleaned DataFrame.
-    """
     df = pd.read_csv("data/megaGymDataset.csv")
 
     df.drop(columns=['RatingDesc'], inplace=True, errors='ignore')

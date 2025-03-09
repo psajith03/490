@@ -10,6 +10,8 @@ import Exercise from './components/Exercise';
 import Sleep from './components/Sleep';
 import Daily from './components/Daily';
 import Diet from './components/Diet';
+import Nutrition from './components/Nutrition'
+import DietHome from './components/DietHome';
 import ExerciseHome from './components/ExerciseHome';
 import './App.css';
 import FullRecommendation from "./components/FullRecommendation";
@@ -77,7 +79,9 @@ function App() {
           <Route path="/exercise" element={<Exercise />} />
           <Route path="/sleep" element={<Sleep />} /> 
           <Route path="/daily" element={<Daily />} />
+          <Route path="/dietHome" element={<DietHome />} /> 
           <Route path="/diet" element={<Diet />} /> 
+          <Route path="/nutrition" element={<Nutrition />} /> 
           <Route path="/home" element={!user ? <Navigate to="/" replace /> : !isOnboardingComplete ? <Navigate to="/onboarding" replace /> : <Home />} />
           <Route path="/onboarding" element={!user ? <Navigate to="/" replace /> : isOnboardingComplete ? <Navigate to="/home" replace /> : <OnboardingQuestionnaire />} />
           <Route path="/recommendations" element={<ExerciseRecommendations />} />

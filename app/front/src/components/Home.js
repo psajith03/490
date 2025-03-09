@@ -84,7 +84,7 @@ const Home = () => {
           <LeftBar onClick={() => navigate('/daily')}>DAILY</LeftBar>
           <TopBar onClick={() => navigate('/exercise-home')}>EXERCISE</TopBar> 
           <RightBar onClick={() => navigate('/sleep')}>SLEEP</RightBar>
-          <BottomBar onClick={() => navigate('/diet')}>DIET</BottomBar>
+          <BottomBar onClick={() => navigate('/dietHome')}>DIET</BottomBar>
 
           <CenterContent>
             <h2>{displayText}</h2>

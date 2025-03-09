@@ -3,10 +3,6 @@ import pandas as pd
 from preprocess import load_and_preprocess
 
 def train_model():
-    """
-    Trains an item-based collaborative filtering model for workout recommendations.
-    Returns a similarity matrix.
-    """
     df = load_and_preprocess()
 
     df_encoded = pd.get_dummies(df[['Type', 'muscle_group', 'Equipment', 'Level']], drop_first=True)

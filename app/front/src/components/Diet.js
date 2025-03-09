@@ -48,7 +48,7 @@ const Diet = () => {
     <PageWrapper>
       <Header>
         <span>Diet</span>
-        <HomeButton onClick={() => navigate('/')}>Home</HomeButton>
+        <HomeButton onClick={() => navigate('/DietHome')}>Diet Home</HomeButton>
       </Header>
       <Content>
         <h1>Manage Your Nutrition</h1>

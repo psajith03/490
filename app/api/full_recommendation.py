@@ -29,7 +29,6 @@ SPLIT_TYPES = {
 }
 
 def generate_full_workout_plan(split_type):
-    """ Returns a structured full workout routine ensuring complete coverage """
     workout_plan = {}
 
     if split_type == "total_body":
