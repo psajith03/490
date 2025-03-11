@@ -276,7 +276,7 @@ const OnboardingQuestionnaire = () => {
       console.log("Updated user data received:", userData);
 
       if (userData.isOnboardingComplete) {
-        console.log("✅ Onboarding complete! Navigating to home...");
+        console.log("Onboarding complete! Navigating to home...");
 
         navigate('/home');
 

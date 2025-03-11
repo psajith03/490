@@ -7,10 +7,39 @@ const Exercise = () => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [selectedSplit, setSelectedSplit] = useState("");
+  const [selectedEquipment, setSelectedEquipment] = useState([]);
+  const [selectedExerciseTypes, setSelectedExerciseTypes] = useState([]);
   const [workoutPlan, setWorkoutPlan] = useState({});
   const [loading, setLoading] = useState(true);
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [exerciseLoading, setExerciseLoading] = useState(false);
+  const [showEquipmentOptions, setShowEquipmentOptions] = useState(false);
+  const [showExerciseTypeOptions, setShowExerciseTypeOptions] = useState(false);
+
+  const equipmentOptions = [
+    "Bands",
+    "Barbell",
+    "Body Only",
+    "Cable",
+    "Dumbbell",
+    "E-Z Curl Bar",
+    "Exercise Ball",
+    "Foam Roll",
+    "Kettlebells",
+    "Machine",
+    "Medicine Ball",
+    "Other"
+  ];
+
+  const exerciseTypeOptions = [
+    "Cardio",
+    "Olympic Weightlifting",
+    "Plyometrics",
+    "Powerlifting",
+    "Strength",
+    "Stretching",
+    "Strongman"
+  ];
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -59,6 +88,26 @@ const Exercise = () => {
   }, []);
   
 
+  const handleEquipmentChange = (equipment) => {
+    setSelectedEquipment(prev => {
+      if (prev.includes(equipment)) {
+        return prev.filter(item => item !== equipment);
+      } else {
+        return [...prev, equipment];
+      }
+    });
+  };
+
+  const handleExerciseTypeChange = (type) => {
+    setSelectedExerciseTypes(prev => {
+      if (prev.includes(type)) {
+        return prev.filter(item => item !== type);
+      } else {
+        return [...prev, type];
+      }
+    });
+  };
+
   const fetchWorkoutPlan = async () => {
     if (!selectedSplit) {
       alert("Please select a workout split.");
@@ -67,22 +116,28 @@ const Exercise = () => {
 
     try {
       const API_URL = "http://localhost:5000";
-      console.log(`Fetching workout plan from: ${API_URL}/api/full_recommendation?split_type=${selectedSplit}`);
-
-      const response = await fetch(`${API_URL}/api/full_recommendation?split_type=${selectedSplit}`);
-
+      let url = `${API_URL}/api/full_recommendation?split_type=${selectedSplit}`;
+      if (selectedEquipment.length > 0) { url += `&equipment=${encodeURIComponent(selectedEquipment.join(','))}`; }
+      if (selectedExerciseTypes.length > 0) { url += `&exercise_type=${encodeURIComponent(selectedExerciseTypes.join(','))}`; }
+      console.log(`Fetching workout plan from: ${url}`);
+      const response = await fetch(url);
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`Failed to fetch workout plan. Server response: ${errorText}`);
         throw new Error(`Failed to fetch workout plan: ${errorText}`);
       }
-
       const data = await response.json();
       console.log("Workout plan received:", data);
 
+      const hasExercises = Object.values(data.workout_plan || {}).some(
+        exercises => exercises && exercises.length > 0
+      );
+
+      if (!hasExercises) { alert("No exercises found with the selected filters. Try different filters or remove some constraints."); }
       setWorkoutPlan(data.workout_plan || {});
     } catch (error) {
       console.error("Error fetching workout plan:", error.message);
+      alert(`Error: ${error.message}`);
     }
   };
 
@@ -112,31 +167,105 @@ const Exercise = () => {
       </Header>
       <Content>
         <h1>Create Your Workout Plan</h1>
-        <label>Select Workout Split:</label>
-        <select value={selectedSplit} onChange={(e) => setSelectedSplit(e.target.value)}>
-          <option value="">Select Split</option>
-          <option value="total_body">Total Body Split</option>
-          <option value="upper_lower">Upper vs. Lower Split</option>
-          <option value="push_pull_legs">Push vs. Pull vs. Legs Split</option>
-          <option value="bro_split">Bro Split</option>
-        </select>
-        <button onClick={fetchWorkoutPlan}>Generate Plan</button>
+        
+        <FormGroup>
+          <label>Select Workout Split:</label>
+          <select value={selectedSplit} onChange={(e) => setSelectedSplit(e.target.value)}>
+            <option value="">Select Split</option>
+            <option value="total_body">Total Body Split</option>
+            <option value="upper_lower">Upper vs. Lower Split</option>
+            <option value="push_pull_legs">Push vs. Pull vs. Legs Split</option>
+            <option value="bro_split">Bro Split</option>
+          </select>
+        </FormGroup>
+        
+        <FilterSection>
+          <FilterHeader onClick={() => setShowEquipmentOptions(!showEquipmentOptions)}>
+            Available Equipment (Optional)
+            <ToggleIcon>{showEquipmentOptions ? '▼' : '►'}</ToggleIcon>
+          </FilterHeader>
+          
+          {showEquipmentOptions && (
+            <CheckboxContainer>
+              {equipmentOptions.map((equipment) => (
+                <CheckboxItem key={equipment}>
+                  <input
+                    type="checkbox"
+                    id={`equipment-${equipment}`}
+                    checked={selectedEquipment.includes(equipment)}
+                    onChange={() => handleEquipmentChange(equipment)}
+                  />
+                  <label htmlFor={`equipment-${equipment}`}>{equipment}</label>
+                </CheckboxItem>
+              ))}
+            </CheckboxContainer>
+          )}
+          
+          {selectedEquipment.length > 0 && (
+            <SelectedFilters>
+              <strong>Selected Equipment:</strong> {selectedEquipment.join(', ')}
+              <ClearButton onClick={() => setSelectedEquipment([])}>Clear</ClearButton>
+            </SelectedFilters>
+          )}
+        </FilterSection>
+        
+        <FilterSection>
+          <FilterHeader onClick={() => setShowExerciseTypeOptions(!showExerciseTypeOptions)}>
+            Exercise Type (Optional)
+            <ToggleIcon>{showExerciseTypeOptions ? '▼' : '►'}</ToggleIcon>
+          </FilterHeader>
+          
+          {showExerciseTypeOptions && (
+            <CheckboxContainer>
+              {exerciseTypeOptions.map((type) => (
+                <CheckboxItem key={type}>
+                  <input
+                    type="checkbox"
+                    id={`type-${type}`}
+                    checked={selectedExerciseTypes.includes(type)}
+                    onChange={() => handleExerciseTypeChange(type)}
+                  />
+                  <label htmlFor={`type-${type}`}>{type}</label>
+                </CheckboxItem>
+              ))}
+            </CheckboxContainer>
+          )}
+          
+          {selectedExerciseTypes.length > 0 && (
+            <SelectedFilters>
+              <strong>Selected Types:</strong> {selectedExerciseTypes.join(', ')}
+              <ClearButton onClick={() => setSelectedExerciseTypes([])}>Clear</ClearButton>
+            </SelectedFilters>
+          )}
+        </FilterSection>
+        
+        <GenerateButton onClick={fetchWorkoutPlan}>Generate Plan</GenerateButton>
   
         {workoutPlan && Object.keys(workoutPlan).length > 0 ? (
           <WorkoutPlanContainer>
             <h3>Your Workout Plan:</h3>
-            <WorkoutRow>
-              {Object.entries(workoutPlan).map(([category, exercises]) => (
-                <WorkoutColumn key={category}>
-                  <h4>{category.toUpperCase()}</h4>
-                  <ul>
-                    {exercises.map((exercise, index) => (
-                      <li key={index} onClick={() => fetchExerciseDetails(exercise)}>{exercise}</li>
-                    ))}
-                  </ul>
-                </WorkoutColumn>
-              ))}
-            </WorkoutRow>
+            {Object.values(workoutPlan).some(exercises => exercises && exercises.length > 0) ? (
+              <WorkoutRow>
+                {Object.entries(workoutPlan).map(([category, exercises]) => (
+                  <WorkoutColumn key={category}>
+                    <h4>{category.toUpperCase()}</h4>
+                    <ul>
+                      {exercises && exercises.length > 0 ? (
+                        exercises.map((exercise, index) => (
+                          <li key={index} onClick={() => fetchExerciseDetails(exercise)}>{exercise}</li>
+                        ))
+                      ) : (
+                        <li className="no-exercises">No exercises found for this category with the selected filters</li>
+                      )}
+                    </ul>
+                  </WorkoutColumn>
+                ))}
+              </WorkoutRow>
+            ) : (
+              <NoExercisesMessage>
+                No exercises found with the selected filters. Try different filters or remove some constraints.
+              </NoExercisesMessage>
+            )}
           </WorkoutPlanContainer>
         ) : (
           <p>No workout plan available yet. Please generate one.</p>
@@ -149,17 +278,15 @@ const Exercise = () => {
         <ExerciseCard>
           <h2>{selectedExercise.name}</h2>
   
-          {/* ✅ Debug GIF URL */}
           {console.log("Received GIF URL:", selectedExercise.gifUrl)}
   
-          {/* ✅ Display ExerciseDB GIF only if it's valid */}
           {selectedExercise.gifUrl ? (
             <img 
               src={selectedExercise.gifUrl} 
               alt={selectedExercise.name} 
               onError={(e) => {
                 console.error("Failed to load GIF:", e.target.src);
-                e.target.style.display = "none"; // Hide broken image
+                e.target.style.display = "none";
               }}
             />
           ) : (
@@ -192,24 +319,127 @@ export default Exercise;
 
 const ButtonContainer = styled.div`
   display: flex;
-  gap: 10px; /* Spacing between buttons */
+  gap: 10px;
 `;
 
+const FormGroup = styled.div`
+  margin-bottom: 15px;
+  width: 100%;
+  max-width: 400px;
+  
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    text-align: left;
+  }
+  
+  select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: white;
+    color: black;
+    font-size: 16px;
+  }
+`;
 
-const WatchVideoButton = styled.button`
-  margin-top: 10px;
-  padding: 12px 20px;
-  font-size: 16px;
+const FilterSection = styled.div`
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 400px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 10px;
+`;
+
+const FilterHeader = styled.div`
   font-weight: bold;
+  cursor: pointer;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.2);
+  
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+`;
+
+const ToggleIcon = styled.span`
+  font-size: 12px;
+`;
+
+const CheckboxContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px;
+`;
+
+const CheckboxItem = styled.div`
+  display: flex;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 5px 10px;
+  border-radius: 5px;
+  
+  input {
+    margin-right: 5px;
+  }
+  
+  label {
+    cursor: pointer;
+  }
+  
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+`;
+
+const SelectedFilters = styled.div`
+  margin-top: 10px;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+`;
+
+const ClearButton = styled.button`
+  background-color: rgba(255, 100, 100, 0.3);
+  border: none;
   color: white;
-  background: #ff0000;
+  padding: 2px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-left: 10px;
+  
+  &:hover {
+    background-color: rgba(255, 100, 100, 0.5);
+  }
+`;
+
+const GenerateButton = styled.button`
+  margin-top: 10px;
+  padding: 12px 24px;
+  background-color: #4CAF50;
+  color: white;
   border: none;
   border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
   cursor: pointer;
-  transition: 0.3s;
-
+  transition: background-color 0.3s;
+  
   &:hover {
-    background: darkred;
+    background-color: #45a049;
   }
 `;
 
@@ -267,13 +497,14 @@ const ExerciseWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  height: 100vh;
+  justify-content: flex-start;
   width: 100%;
+  min-height: 100vh;
   background: radial-gradient(125% 125% at 50% 10%, rgb(217, 39, 39) 40%, #000 100%);
   color: white;
   text-align: center;
   padding: 20px;
+  overflow-y: auto;
 `;
 
 const Header = styled.div`
@@ -346,6 +577,8 @@ const WorkoutPlanContainer = styled.div`
   flex-direction: column;
   align-items: center;
   text-align: center;
+  overflow-y: auto;
+  max-height: 70vh;
 `;
 
 const WorkoutRow = styled.div`
@@ -381,4 +614,22 @@ const WorkoutColumn = styled.div`
     padding: 8px;
     border-radius: 8px;
   }
+  
+  li.no-exercises {
+    color: #ff9999;
+    font-style: italic;
+  }
+`;
+
+const NoExercisesMessage = styled.p`
+  margin-top: 20px;
+  padding: 20px;
+  background-color: rgba(255, 100, 100, 0.2);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 100, 100, 0.5);
+  color: #ff9999;
+  font-size: 18px;
+  width: 90%;
+  max-width: 600px;
+  text-align: center;
 `;

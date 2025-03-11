@@ -11,7 +11,7 @@ let localExercises = [];
 
 const loadLocalExercises = () => {
   const csvPath = path.join(__dirname, "../data", "megaGymDataset.csv");
-  console.log(`📂 Loading exercises from: ${csvPath}`);
+  console.log(`Loading exercises from: ${csvPath}`);
 
   if (!fs.existsSync(csvPath)) {
     console.error(`CSV file not found at: ${csvPath}`);
@@ -38,22 +38,23 @@ const loadLocalExercises = () => {
 loadLocalExercises();
 
 const findExerciseLocally = (name) => {
-  console.log(`🔎 Searching for exercise: "${name}" in local database.`);
+  console.log(`Searching for exercise: "${name}" in local database.`);
   return localExercises.find(
     (exercise) => exercise.name.toLowerCase() === name.toLowerCase().trim()
   );
 };
 
 router.get("/full_recommendation", async (req, res) => {
-  const { split_type } = req.query;
+  const { split_type, equipment, exercise_type } = req.query;
 
   if (!split_type) {
     return res.status(400).json({ error: "Missing split type parameter" });
   }
 
   try {
+    console.log(`Forwarding request to Python API with params:`, req.query);
     const response = await axios.get(`${PYTHON_API}/full_recommendation`, {
-      params: { split_type },
+      params: req.query
     });
 
     if (response.status !== 200) {
@@ -61,6 +62,7 @@ router.get("/full_recommendation", async (req, res) => {
       return res.status(500).json({ error: "Failed to fetch full workout plan" });
     }
 
+    console.log(`Received response from Python API with ${Object.keys(response.data.workout_plan || {}).length} categories`);
     res.json(response.data);
   } catch (error) {
     console.error("Error fetching full workout plan:", error.message);
@@ -70,10 +72,10 @@ router.get("/full_recommendation", async (req, res) => {
 
 router.get("/exercise/:name", async (req, res) => {
   const { name } = req.params;
-  console.log(`📩 Received request for exercise: "${name}"`);
+  console.log(`Received request for exercise: "${name}"`);
 
   try {
-    console.log("🌐 Attempting API fetch from ExerciseDB...");
+    console.log("Attempting API fetch from ExerciseDB...");
     const response = await axios.get(`${process.env.API_URL}/${encodeURIComponent(name)}`, {
       headers: {
         "X-RapidAPI-Key": process.env.API_KEY,
@@ -84,7 +86,7 @@ router.get("/exercise/:name", async (req, res) => {
 
     if (response.data && response.data.length > 0) {
       const exercise = response.data[0];
-      console.log("✅ Found exercise in ExerciseDB:", exercise.name);
+      console.log("Found exercise in ExerciseDB:", exercise.name);
 
       return res.json({
         name: exercise.name,
@@ -100,14 +102,14 @@ router.get("/exercise/:name", async (req, res) => {
     console.error("ExerciseDB API request failed:", error.message);
   }
 
-  console.log("🔎 Falling back to local CSV database...");
+  console.log("Falling back to local CSV database...");
   const localExercise = findExerciseLocally(name);
 
   if (localExercise) {
-    console.log("✅ Found exercise in local database:", localExercise.name);
+    console.log("Found exercise in local database:", localExercise.name);
     return res.json({
       name: localExercise.name,
-      gifUrl: null,  // No GIF available in CSV
+      gifUrl: null,
       target: localExercise.target || "N/A",
       equipment: localExercise.equipment || "N/A",
       instructions: [localExercise.instructions || "No instructions available"],

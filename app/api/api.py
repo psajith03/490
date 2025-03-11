@@ -52,7 +52,6 @@ NUTRIENT_IDS = {
 }
 
 def get_fdc_id(food_query):
-    """Fetch the FDC ID for a given food item."""
     url = f"{USDA_BASE_URL}/foods/search?api_key={USDA_API_KEY}"
     payload = {
         "query": food_query,
@@ -71,7 +70,6 @@ def get_fdc_id(food_query):
     return None
 
 def get_nutrition_by_fdc(fdc_id):
-    """Retrieve detailed nutritional data using FDC ID."""
     url = f"{USDA_BASE_URL}/foods?fdcIds={fdc_id}&format=full&api_key={USDA_API_KEY}"
     response = requests.get(url)
 
@@ -100,7 +98,6 @@ def get_nutrition_by_fdc(fdc_id):
 
 @app.route('/recommend', methods=['GET'])
 def recommend():
-    """Recommend exercises based on a given exercise."""
     exercise = request.args.get('exercise', '').lower().strip()
     top_n = int(request.args.get('top_n', 5))
 
@@ -113,7 +110,6 @@ def recommend():
 
 @app.route('/popular', methods=['GET'])
 def popular():
-    """Retrieve popular exercises for a given muscle group."""
     muscle = request.args.get('muscle', '').lower().strip()
     top_n = int(request.args.get('top_n', 5))
 
@@ -126,18 +122,24 @@ def popular():
 
 @app.route('/full_recommendation', methods=['GET'])
 def full_recommendation():
-    """Generate a full workout plan based on a given split type."""
     split_type = request.args.get('split_type', '').lower().strip()
+    
+    equipment_str = request.args.get('equipment', '').strip()
+    exercise_type_str = request.args.get('exercise_type', '').strip()
+    equipment_list = [e.strip() for e in equipment_str.split(',')] if equipment_str else []
+    exercise_type_list = [t.strip() for t in exercise_type_str.split(',')] if exercise_type_str else []
+    
+    print(f"Equipment list: {equipment_list}")
+    print(f"Exercise type list: {exercise_type_list}")
 
     if split_type not in SPLIT_TYPES:
         return jsonify({"error": "Invalid split type. Choose from total_body, upper_lower, push_pull_legs, bro_split"}), 400
 
-    plan = generate_full_workout_plan(split_type)
+    plan = generate_full_workout_plan(split_type, equipment_list, exercise_type_list)
     return jsonify({"split_type": split_type, "workout_plan": plan})
 
 @app.route('/get_nutrition', methods=['GET'])
 def get_nutrition():
-    """Retrieve nutritional information for a food query."""
     food_query = request.args.get("food", "").strip()
 
     if not food_query:
