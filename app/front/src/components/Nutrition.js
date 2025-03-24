@@ -19,10 +19,12 @@ const fetchNutritionData = async (ingredient) => {
 };
 
 const getServingSize = (nutritionData) => {
+    // Check if a "ServingSize" field exists
     if (nutritionData.ServingSize) {
       return `${nutritionData.ServingSize}g`;
     }
   
+    // Check for Water content as an alternative serving size indicator
     if (nutritionData.foodNutrients && Array.isArray(nutritionData.foodNutrients)) {
       const waterNutrient = nutritionData.foodNutrients.find(nutrient => nutrient.nutrient.name === "Water");
       if (waterNutrient && waterNutrient.amount) {
@@ -30,6 +32,7 @@ const getServingSize = (nutritionData) => {
       }
     }
   
+    // Default to 100g if no other information is available
     return "100g";
   };
   
@@ -50,8 +53,10 @@ const Nutrition = () => {
     }
   };
 
+  // New function to remove an ingredient by index
   const removeIngredient = (indexToRemove) => {
     setIngredients(ingredients.filter((_, index) => index !== indexToRemove));
+    // Reset nutrition data when ingredients change
     setNutritionData(null);
   };
 
@@ -67,6 +72,7 @@ const Nutrition = () => {
     const validResults = nutritionResults.filter((data) => data !== null);
 
     if (validResults.length > 0) {
+      // Sum up all nutrient values
       const summedNutrition = sumNutrients(validResults);
       setNutritionData(summedNutrition);
     } else {
@@ -88,16 +94,17 @@ const Nutrition = () => {
       dietaryFiber: 0,
       totalSugars: 0,
       protein: 0,
-      servingSize: "100g"
+      servingSize: "100g" // Default serving size
     };
   
     nutritionList.forEach((item) => {
-      const defaultServingSize = getServingSize(item);
-      summed.servingSize = defaultServingSize;
-      const servingSizeMultiplier = 1
+      const defaultServingSize = getServingSize(item); // Extract actual serving size
+      summed.servingSize = defaultServingSize; // Store it for display
+  
+      const servingSizeMultiplier = 1; // Adjust values based on serving size
   
       Object.entries(item.Nutrients).forEach(([key, value]) => {
-        const numValue = parseFloat(value.split(' ')[0]);
+        const numValue = parseFloat(value.split(' ')[0]); // Extract numeric value
         if (!isNaN(numValue)) {
           if (key.includes("Energy")) summed.calories += numValue * servingSizeMultiplier;
           if (key.includes("Total Fat")) summed.totalFat += numValue * servingSizeMultiplier;
@@ -113,6 +120,8 @@ const Nutrition = () => {
       });
     });
   
+  
+    // If added sugars data is not available, use total sugars
     if (summed.addedSugars === 0) {
       summed.addedSugars = summed.totalSugars;
     }
@@ -120,20 +129,22 @@ const Nutrition = () => {
     return summed;
   };
   
+
+  // Calculate daily value percentages
   const calculateDailyValue = (nutrient, value) => {
     const dailyValues = {
-      totalFat: 78,
-      saturatedFat: 20,
-      cholesterol: 300,
-      sodium: 2300,
-      totalCarbs: 275,
-      dietaryFiber: 28,
-      addedSugars: 50,
-      protein: 50,
-      vitaminD: 20,
-      calcium: 1300,
-      iron: 18,
-      potassium: 4700
+      totalFat: 78, // g
+      saturatedFat: 20, // g
+      cholesterol: 300, // mg
+      sodium: 2300, // mg
+      totalCarbs: 275, // g
+      dietaryFiber: 28, // g
+      addedSugars: 50, // g
+      protein: 50, // g (approximate)
+      vitaminD: 20, // mcg
+      calcium: 1300, // mg
+      iron: 18, // mg
+      potassium: 4700 // mg
     };
 
     if (!dailyValues[nutrient] || value === 0) return 0;
@@ -191,6 +202,7 @@ const Nutrition = () => {
   );
 };
 
+/* --- Nutrition Facts Label Component --- */
 const NutritionLabel = ({ nutrition, calculateDailyValue }) => {
   return (
     <LabelContainer>
@@ -198,7 +210,7 @@ const NutritionLabel = ({ nutrition, calculateDailyValue }) => {
       <ServingInfo>1 servings per container</ServingInfo>
       <ServingSizeRow>
         <span><strong>Serving size</strong></span>
-        <span>{nutrition.servingSize}</span> {}
+        <span>{nutrition.servingSize}</span> {/* Dynamically updates serving size */}
       </ServingSizeRow>
 
       <ThickDivider />
@@ -267,6 +279,7 @@ const NutritionLabel = ({ nutrition, calculateDailyValue }) => {
 
 export default Nutrition;
 
+/* --- STYLES --- */
 const PageWrapper = styled.div`
   display: flex;
   flex-direction: column;

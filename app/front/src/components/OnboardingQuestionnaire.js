@@ -244,7 +244,9 @@ const OnboardingQuestionnaire = () => {
     try {
       const idToken = await auth.currentUser.getIdToken(true);
       console.log("Sending ID Token:", idToken);
+
       const apiBase = "http://localhost:5000";
+      
       console.log("Submitting form data:", JSON.stringify(formData, null, 2));
 
       const response = await fetch(`${apiBase}/api/auth/update-profile`, {

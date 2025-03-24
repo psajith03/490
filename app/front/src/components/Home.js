@@ -148,6 +148,8 @@ const glowEffect = `
   }
 `;
 
+/* --- STYLES --- */
+
 const HomeWrapper = styled.div`
   position: absolute;
   inset: 0;
@@ -156,18 +158,10 @@ const HomeWrapper = styled.div`
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: center;
-  text-align: center;
+  justify-content: center; /* Ensures centering */
+  text-align: center; /* Keeps text centered */
   padding: 24px 5%;
-  background: linear-gradient(45deg, #B7E4C7, #FFE066, #74C0FC, #c4a7e7);
-  background-size: 400% 400%;
-  animation: gradientAnimation 5s ease infinite;
-
-  @keyframes gradientAnimation {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
+  background: radial-gradient(125% 125% at 50% 10%, #fff 40%, #63e 100%);
 `;
 
 
@@ -192,7 +186,7 @@ const BarBase = styled.div`
 
 const LeftBar = styled.div`
   ${glowEffect}
-  --glow-color: rgb(255, 165, 0);
+  --glow-color: rgb(255, 165, 0); /* Orange */
   --glow-spread-color: rgba(255, 140, 0, 0.8);
   --enhanced-glow-color: rgb(255, 200, 100);
   --btn-color: rgb(150, 80, 0);
@@ -208,7 +202,7 @@ const LeftBar = styled.div`
 
 const TopBar = styled.div`
   ${glowEffect}
-  --glow-color: rgb(255, 0, 102);
+  --glow-color: rgb(255, 0, 102); /* Pink */
   --glow-spread-color: rgba(255, 50, 130, 0.8);
   --enhanced-glow-color: rgb(255, 150, 180);
   --btn-color: rgb(150, 0, 60);
@@ -222,7 +216,7 @@ const TopBar = styled.div`
 
 const RightBar = styled.div`
   ${glowEffect}
-  --glow-color: rgb(75, 0, 130);
+  --glow-color: rgb(75, 0, 130); /* Purple */
   --glow-spread-color: rgba(110, 0, 180, 0.8);
   --enhanced-glow-color: rgb(190, 100, 255);
   --btn-color: rgb(50, 0, 90);
@@ -238,7 +232,7 @@ const RightBar = styled.div`
 
 const BottomBar = styled.div`
   ${glowEffect}
-  --glow-color: rgb(166, 0, 100);
+  --glow-color: rgb(166, 0, 100); /* Maroon/Magenta */
   --glow-spread-color: rgba(180, 0, 120, 0.8);
   --enhanced-glow-color: rgb(230, 100, 160);
   --btn-color: rgb(100, 0, 60);
@@ -287,7 +281,7 @@ const Header = styled.div`
   left: 0;
   width: 100%;
   height: 60px;
-  background-color: #000;
+  background-color: #000; /* Dark background */
   color: white;
   display: flex;
   align-items: center;
