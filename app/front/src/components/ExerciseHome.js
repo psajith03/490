@@ -27,7 +27,7 @@ export default ExerciseHome;
 
 const ButtonContainer = styled.div`
   display: flex;
-  gap: 10px; /* Spacing between buttons */
+  gap: 10px;
 `;
 
 const ExerciseWrapper = styled.div`

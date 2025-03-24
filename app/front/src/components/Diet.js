@@ -102,7 +102,6 @@ const Diet = () => {
 export default Diet;
 
 
-/* --- STYLES --- */
 const PageWrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -147,7 +146,7 @@ const HomeButton = styled.button`
   padding: 8px 16px;
   font-size: 14px;
   font-weight: bold;
-  border: .25em solid rgb(217, 176, 255); /* Light purple glow */
+  border: .25em solid rgb(217, 176, 255);
   background-color: #fff;
   color: rgb(217, 176, 255);
   border-radius: 1em;
