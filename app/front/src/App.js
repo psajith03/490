@@ -15,7 +15,7 @@ import DietHome from './components/DietHome';
 import ExerciseHome from './components/ExerciseHome';
 import './App.css';
 import FullRecommendation from "./components/FullRecommendation";
-const API_URL = "http://localhost:5000";
+const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
 function App() {
   const [user, setUser] = useState(null);
