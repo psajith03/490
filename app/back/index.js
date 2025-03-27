@@ -5,7 +5,6 @@ const cors = require("cors");
 const admin = require("firebase-admin");
 
 dotenv.config();
-console.log("MongoDB URI:", process.env.MONGODB_URI);
 
 const app = express();
 

@@ -31,7 +31,7 @@ export default DietHome;
 
 const ButtonContainer = styled.div`
   display: flex;
-  gap: 10px; /* Spacing between buttons */
+  gap: 10px;
 `;
 
 const DietWrapper = styled.div`

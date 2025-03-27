@@ -15,6 +15,8 @@ const Exercise = () => {
   const [exerciseLoading, setExerciseLoading] = useState(false);
   const [showEquipmentOptions, setShowEquipmentOptions] = useState(false);
   const [showExerciseTypeOptions, setShowExerciseTypeOptions] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [workoutName, setWorkoutName] = useState("");
 
   const equipmentOptions = [
     "Bands",
@@ -155,6 +157,62 @@ const Exercise = () => {
     }
   };
 
+  const saveWorkout = async () => {
+    if (!workoutPlan || Object.keys(workoutPlan).length === 0) {
+      alert("No workout plan to save!");
+      return;
+    }
+
+    if (!selectedSplit) {
+      alert("Please select a workout split before saving!");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const idToken = await auth.currentUser?.getIdToken(true);
+      if (!idToken) {
+        throw new Error("User not authenticated");
+      }
+
+      const API_URL = "http://localhost:5000";
+      console.log("Saving workout with data:", {
+        splitType: selectedSplit,
+        exercises: workoutPlan,
+        name: workoutName || undefined
+      });
+
+      const response = await fetch(`${API_URL}/api/saved-workouts`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${idToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          splitType: selectedSplit,
+          exercises: workoutPlan,
+          name: workoutName || undefined
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Server response:", errorText);
+        throw new Error(`Failed to save workout: ${response.status} ${response.statusText}`);
+      }
+
+      const savedWorkout = await response.json();
+      console.log("Workout saved successfully:", savedWorkout);
+      alert("Workout saved successfully!");
+      setWorkoutName("");
+    } catch (error) {
+      console.error("Error saving workout:", error);
+      alert(`Failed to save workout: ${error.message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) return <p>Loading user data...</p>;
 
   return (
@@ -244,6 +302,17 @@ const Exercise = () => {
         {workoutPlan && Object.keys(workoutPlan).length > 0 ? (
           <WorkoutPlanContainer>
             <h3>Your Workout Plan:</h3>
+            <SaveSection>
+              <NameInput
+                type="text"
+                placeholder="Enter workout name (optional)"
+                value={workoutName}
+                onChange={(e) => setWorkoutName(e.target.value)}
+              />
+              <SaveButton onClick={saveWorkout} disabled={saving}>
+                {saving ? 'Saving...' : 'Save This Workout'}
+              </SaveButton>
+            </SaveSection>
             {Object.values(workoutPlan).some(exercises => exercises && exercises.length > 0) ? (
               <WorkoutRow>
                 {Object.entries(workoutPlan).map(([category, exercises]) => (
@@ -632,4 +701,52 @@ const NoExercisesMessage = styled.p`
   width: 90%;
   max-width: 600px;
   text-align: center;
+`;
+
+const SaveButton = styled.button`
+  margin: 10px 0;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  background: #28a745;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+
+  &:hover {
+    background: #218838;
+  }
+`;
+
+const SaveSection = styled.div`
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 10px 0;
+  width: 100%;
+  max-width: 600px;
+  justify-content: center;
+`;
+
+const NameInput = styled.input`
+  padding: 10px 15px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  flex: 1;
+  max-width: 300px;
+  transition: border-color 0.3s;
+  background-color: white;
+  color: black;
+
+  &:focus {
+    outline: none;
+    border-color: #007bff;
+  }
+
+  &::placeholder {
+    color: #999;
+  }
 `;

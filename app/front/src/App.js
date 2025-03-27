@@ -13,6 +13,7 @@ import Diet from './components/Diet';
 import Nutrition from './components/Nutrition'
 import DietHome from './components/DietHome';
 import ExerciseHome from './components/ExerciseHome';
+import SavedWorkouts from './components/SavedWorkouts';
 import './App.css';
 import FullRecommendation from "./components/FullRecommendation";
 const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
@@ -77,6 +78,7 @@ function App() {
           <Route path="/" element={user ? (isOnboardingComplete ? <Navigate to="/home" replace /> : <Navigate to="/onboarding" replace />) : <Form />} />
           <Route path="/exercise-home" element={<ExerciseHome />} />
           <Route path="/exercise" element={<Exercise />} />
+          <Route path="/saved-workouts" element={<SavedWorkouts />} />
           <Route path="/sleep" element={<Sleep />} /> 
           <Route path="/daily" element={<Daily />} />
           <Route path="/dietHome" element={<DietHome />} /> 

@@ -15,9 +15,14 @@ const ExerciseHome = () => {
       </Header>
       <Content>
         <h1>Select an option to proceed.</h1>
-        <GenerateButton onClick={() => navigate('/exercise')}>
-          Generate Workout Plan
-        </GenerateButton>
+        <ButtonContainer>
+          <GenerateButton onClick={() => navigate('/exercise')}>
+            Generate Workout Plan
+          </GenerateButton>
+          <SavedWorkoutsButton onClick={() => navigate('/saved-workouts')}>
+            Saved Workouts
+          </SavedWorkoutsButton>
+        </ButtonContainer>
       </Content>
     </ExerciseWrapper>
   );
@@ -27,7 +32,8 @@ export default ExerciseHome;
 
 const ButtonContainer = styled.div`
   display: flex;
-  gap: 10px; /* Spacing between buttons */
+  gap: 20px;
+  margin-top: 20px;
 `;
 
 const ExerciseWrapper = styled.div`
@@ -110,7 +116,6 @@ const Content = styled.div`
 `;
 
 const GenerateButton = styled.button`
-  margin-top: 20px;
   padding: 12px 20px;
   font-size: 18px;
   font-weight: bold;
@@ -123,5 +128,21 @@ const GenerateButton = styled.button`
 
   &:hover {
     background: #0056b3;
+  }
+`;
+
+const SavedWorkoutsButton = styled.button`
+  padding: 12px 20px;
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  background: #28a745;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+
+  &:hover {
+    background: #218838;
   }
 `;
