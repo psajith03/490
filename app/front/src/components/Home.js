@@ -161,7 +161,15 @@ const HomeWrapper = styled.div`
   justify-content: center; /* Ensures centering */
   text-align: center; /* Keeps text centered */
   padding: 24px 5%;
-  background: radial-gradient(125% 125% at 50% 10%, #fff 40%, #63e 100%);
+  background: linear-gradient(45deg, #B7E4C7, #FFE066, #74C0FC, #c4a7e7);
+  background-size: 400% 400%;
+  animation: gradientAnimation 10s ease infinite;
+
+  @keyframes gradientAnimation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
 `;
 
 

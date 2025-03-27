@@ -37,10 +37,18 @@ const ExerciseWrapper = styled.div`
   justify-content: center;
   height: 100vh;
   width: 100%;
-  background: radial-gradient(125% 125% at 50% 10%, rgb(217, 39, 39) 40%, #000 100%);
-  color: white;
+  background: linear-gradient(45deg, #B7E4C7, #FFE066, #74C0FC, #c4a7e7);
+  background-size: 400% 400%;
+  animation: gradientAnimation 10s ease infinite;
+  color: #333;
   text-align: center;
   padding: 20px;
+
+  @keyframes gradientAnimation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
 `;
 
 const Header = styled.div`
