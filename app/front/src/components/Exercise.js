@@ -640,8 +640,8 @@ const WorkoutPlanContainer = styled.div`
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-  width: 90%;
-  max-width: 1200px;
+  width: 125%;
+  max-width: 1400px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -650,43 +650,57 @@ const WorkoutPlanContainer = styled.div`
   max-height: 70vh;
 `;
 
+
 const WorkoutRow = styled.div`
   display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
   justify-content: center;
-  gap: 40px;
   width: 100%;
-  max-width: 1000px;
+  margin-top: 20px;
 `;
 
 const WorkoutColumn = styled.div`
   flex: 1;
-  max-width: 300px;
-  text-align: center;
-
+  min-width: 300px;
+  max-width: 400px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 15px;
+  margin: 10px;
+  
   h4 {
-    font-size: 24px;
-    margin-bottom: 10px;
-    text-transform: uppercase;
+    margin-bottom: 15px;
     color: #fff;
-    text-decoration: underline;
   }
 
   ul {
+    list-style: none;
     padding: 0;
-    list-style-type: none;
-  }
-
-  li {
-    font-size: 18px;
-    margin: 10px 0;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 8px;
-    border-radius: 8px;
-  }
-  
-  li.no-exercises {
-    color: #ff9999;
-    font-style: italic;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 10px;
+    max-height: 400px;
+    overflow-y: auto;
+    
+    li {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+      
+      &.no-exercises {
+        grid-column: 1 / -1;
+        text-align: center;
+        color: #888;
+      }
+    }
   }
 `;
 
