@@ -7,7 +7,9 @@ const SavedWorkouts = () => {
   const navigate = useNavigate();
   const [savedWorkouts, setSavedWorkouts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [expandedWorkout, setExpandedWorkout] = useState(null);
+  const [selectedWorkout, setSelectedWorkout] = useState(null);
+  const [selectedExercise, setSelectedExercise] = useState(null);
+  const [exerciseLoading, setExerciseLoading] = useState(false);
 
   useEffect(() => {
     const fetchSavedWorkouts = async () => {
@@ -45,8 +47,18 @@ const SavedWorkouts = () => {
     fetchSavedWorkouts();
   }, []);
 
-  const toggleWorkoutExpansion = (workoutId) => {
-    setExpandedWorkout(expandedWorkout === workoutId ? null : workoutId);
+  const fetchExerciseDetails = async (exerciseName) => {
+    setExerciseLoading(true);
+    try {
+      const API_URL = `http://localhost:5000/api/exercise/${encodeURIComponent(exerciseName)}`;
+      const res = await fetch(API_URL);
+      const data = await res.json();
+      setSelectedExercise(data);
+    } catch (error) {
+      console.error("Error fetching exercise details:", error);
+    } finally {
+      setExerciseLoading(false);
+    }
   };
 
   if (loading) return <LoadingMessage>Loading saved workouts...</LoadingMessage>;
@@ -65,31 +77,77 @@ const SavedWorkouts = () => {
           <NoWorkoutsMessage>No saved workouts yet. Generate a workout plan and save it!</NoWorkoutsMessage>
         ) : (
           <WorkoutGrid>
-            {savedWorkouts.map((workout, index) => (
+            {savedWorkouts.map((workout) => (
               <WorkoutCard 
-                key={workout._id || index}
-                onClick={() => toggleWorkoutExpansion(workout._id)}
+                key={workout._id} 
+                onClick={() => setSelectedWorkout(workout)}
               >
-                <WorkoutTitle>{workout.name || `Workout ${index + 1}`}</WorkoutTitle>
-                <WorkoutDate>{new Date(workout.createdAt).toLocaleDateString()}</WorkoutDate>
-                <SplitType>Split Type: {workout.splitType.replace(/_/g, ' ').toUpperCase()}</SplitType>
-                {expandedWorkout === workout._id && (
-                  Object.entries(workout.exercises).map(([category, exercises]) => (
-                    <CategorySection key={category}>
-                      <CategoryTitle>{category.charAt(0).toUpperCase() + category.slice(1)}</CategoryTitle>
-                      <ExerciseList>
-                        {exercises.map((exercise, idx) => (
-                          <ExerciseItem key={idx}>{exercise}</ExerciseItem>
-                        ))}
-                      </ExerciseList>
-                    </CategorySection>
-                  ))
-                )}
+                <h4>{workout.name || workout.splitType.replace(/_/g, ' ').toUpperCase()}</h4>
+                <p>Split: {workout.splitType.replace(/_/g, ' ').toUpperCase()}</p>
+                <p>Created: {new Date(workout.createdAt).toLocaleDateString()}</p>
               </WorkoutCard>
             ))}
           </WorkoutGrid>
         )}
       </Content>
+
+      {exerciseLoading && <p>Loading exercise details...</p>}
+
+      {selectedExercise && (
+        <ExerciseCard>
+          <h2>{selectedExercise.name}</h2>
+
+          {selectedExercise.gifUrl ? (
+            <img 
+              src={selectedExercise.gifUrl} 
+              alt={selectedExercise.name} 
+              onError={(e) => {
+                console.error("Failed to load GIF:", e.target.src);
+                e.target.style.display = "none";
+              }}
+            />
+          ) : (
+            <p><strong>No GIF available for this exercise.</strong></p>
+          )}
+
+          <p><strong>Target Muscle:</strong> {selectedExercise.target || "N/A"}</p>
+          <p><strong>Equipment:</strong> {selectedExercise.equipment || "N/A"}</p>
+
+          <h4>Instructions:</h4>
+          <ul>
+            {selectedExercise.instructions?.length > 0 ? (
+              selectedExercise.instructions.map((step, index) => (
+                <li key={index}>{step}</li>
+              ))
+            ) : (
+              <li>No instructions available</li>
+            )}
+          </ul>
+
+          <CloseButton onClick={() => setSelectedExercise(null)}>Close</CloseButton>
+        </ExerciseCard>
+      )}
+
+      {selectedWorkout && (
+        <SavedWorkoutOverlay>
+          <SavedWorkoutContent>
+            <CloseButton onClick={() => setSelectedWorkout(null)}>Close</CloseButton>
+            <h2>{selectedWorkout.name || selectedWorkout.splitType.replace(/_/g, ' ').toUpperCase()}</h2>
+            <WorkoutRow>
+              {Object.entries(selectedWorkout.exercises).map(([category, exercises]) => (
+                <WorkoutColumn key={category}>
+                  <h4>{category.toUpperCase()}</h4>
+                  <ul>
+                    {exercises.map((exercise, index) => (
+                      <li key={index} onClick={() => fetchExerciseDetails(exercise)}>{exercise}</li>
+                    ))}
+                  </ul>
+                </WorkoutColumn>
+              ))}
+            </WorkoutRow>
+          </SavedWorkoutContent>
+        </SavedWorkoutOverlay>
+      )}
     </WorkoutWrapper>
   );
 };
@@ -102,7 +160,7 @@ const WorkoutWrapper = styled.div`
   align-items: center;
   min-height: 100vh;
   width: 100%;
-  background: linear-gradient(45deg, #B7E4C7, #FFE066, #74C0FC, #c4a7e7);
+  background: linear-gradient(45deg, #CC3333, #FF9933, #3366CC, #9933CC);
   background-size: 400% 400%;
   animation: gradientAnimation 10s ease infinite;
   color: #333;
@@ -180,63 +238,149 @@ const WorkoutGrid = styled.div`
 `;
 
 const WorkoutCard = styled.div`
-  background: white;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 15px;
   cursor: pointer;
+  transition: transform 0.2s, background-color 0.2s;
 
   &:hover {
     transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    background-color: rgba(255, 255, 255, 0.25);
+  }
+
+  h4 {
+    margin: 0 0 10px 0;
+    color: white;
+  }
+
+  p {
+    margin: 5px 0;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
   }
 `;
 
-const WorkoutTitle = styled.h2`
-  margin: 0 0 10px 0;
-  color: #333;
-  font-size: 1.5em;
+const ExerciseCard = styled.div`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  color: black;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  z-index: 1001;
+  width: 400px;
+
+  img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-top: 10px;
+  }
+
+  ul {
+    text-align: left;
+    padding-left: 20px;
+  }
+
+  li {
+    margin-bottom: 5px;
+  }
 `;
 
-const WorkoutDate = styled.p`
-  color: #666;
-  font-size: 0.9em;
-  margin-bottom: 10px;
+const SavedWorkoutOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+  overflow-y: auto;
 `;
 
-const SplitType = styled.p`
-  color: #007bff;
+const SavedWorkoutContent = styled.div`
+  background: radial-gradient(125% 125% at 50% 10%, rgb(217, 39, 39) 40%, #000 100%);
+  padding: 30px;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 1200px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  color: white;
+
+  h2 {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+`;
+
+const WorkoutRow = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  width: 100%;
+  max-width: 1000px;
+`;
+
+const WorkoutColumn = styled.div`
+  flex: 1;
+  max-width: 300px;
+  text-align: center;
+
+  h4 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    color: #fff;
+    text-decoration: underline;
+  }
+
+  ul {
+    padding: 0;
+    list-style-type: none;
+  }
+
+  li {
+    font-size: 18px;
+    margin: 10px 0;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+  }
+`;
+
+const CloseButton = styled.button`
+  margin-top: 10px;
+  padding: 10px;
+  border: none;
+  background: red;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+  width: 100%;
+  text-align: center;
   font-weight: bold;
-  margin-bottom: 15px;
-  text-transform: capitalize;
-`;
+  transition: 0.3s;
 
-const CategorySection = styled.div`
-  margin-bottom: 15px;
-  display: none; // Hide by default
-`;
-
-const CategoryTitle = styled.h3`
-  color: #28a745;
-  margin: 0 0 10px 0;
-  font-size: 1.1em;
-`;
-
-const ExerciseList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0;
-`;
-
-const ExerciseItem = styled.li`
-  padding: 5px 0;
-  color: #444;
-  font-size: 0.9em;
-  border-bottom: 1px solid #eee;
-  
-  &:last-child {
-    border-bottom: none;
+  &:hover {
+    background: darkred;
   }
 `;
 
