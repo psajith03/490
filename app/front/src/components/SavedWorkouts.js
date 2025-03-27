@@ -11,41 +11,75 @@ const SavedWorkouts = () => {
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [exerciseLoading, setExerciseLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchSavedWorkouts = async () => {
-      try {
-        const idToken = await auth.currentUser?.getIdToken(true);
-        if (!idToken) {
-          console.warn("No ID token available. User may not be authenticated.");
-          setLoading(false);
-          return;
-        }
-
-        const API_URL = "http://localhost:5000";
-        console.log("Fetching saved workouts...");
-        const response = await fetch(`${API_URL}/api/saved-workouts`, {
-          headers: {
-            "Authorization": `Bearer ${idToken}`,
-            "Content-Type": "application/json"
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch saved workouts');
-        }
-
-        const data = await response.json();
-        console.log("Fetched saved workouts:", data);
-        setSavedWorkouts(data);
-      } catch (error) {
-        console.error("Error fetching saved workouts:", error);
-      } finally {
+  const fetchSavedWorkouts = async () => {
+    try {
+      const idToken = await auth.currentUser?.getIdToken(true);
+      if (!idToken) {
+        console.warn("No ID token available. User may not be authenticated.");
         setLoading(false);
+        return;
       }
-    };
 
+      const API_URL = "http://localhost:5000";
+      console.log("Fetching saved workouts...");
+      const response = await fetch(`${API_URL}/api/saved-workouts`, {
+        headers: {
+          "Authorization": `Bearer ${idToken}`,
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch saved workouts');
+      }
+
+      const data = await response.json();
+      console.log("Fetched saved workouts:", data);
+      setSavedWorkouts(data);
+    } catch (error) {
+      console.error("Error fetching saved workouts:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchSavedWorkouts();
   }, []);
+
+  const deleteWorkout = async (workoutId, e) => {
+    e.stopPropagation(); // Prevent opening the workout details when clicking delete
+    if (!window.confirm('Are you sure you want to delete this workout?')) {
+      return;
+    }
+
+    try {
+      const idToken = await auth.currentUser?.getIdToken(true);
+      if (!idToken) {
+        throw new Error("User not authenticated");
+      }
+
+      const API_URL = "http://localhost:5000";
+      const response = await fetch(`${API_URL}/api/saved-workouts/${workoutId}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${idToken}`,
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete workout');
+      }
+
+      // Update the local state to remove the deleted workout
+      setSavedWorkouts(prevWorkouts => prevWorkouts.filter(workout => workout._id !== workoutId));
+      alert('Workout deleted successfully');
+    } catch (error) {
+      console.error("Error deleting workout:", error);
+      alert(`Failed to delete workout: ${error.message}`);
+    }
+  };
 
   const fetchExerciseDetails = async (exerciseName) => {
     setExerciseLoading(true);
@@ -82,6 +116,7 @@ const SavedWorkouts = () => {
                 key={workout._id} 
                 onClick={() => setSelectedWorkout(workout)}
               >
+                <DeleteButton onClick={(e) => deleteWorkout(workout._id, e)}>×</DeleteButton>
                 <h4>{workout.name || workout.splitType.replace(/_/g, ' ').toUpperCase()}</h4>
                 <p>Split: {workout.splitType.replace(/_/g, ' ').toUpperCase()}</p>
                 <p>Created: {new Date(workout.createdAt).toLocaleDateString()}</p>
@@ -238,6 +273,7 @@ const WorkoutGrid = styled.div`
 `;
 
 const WorkoutCard = styled.div`
+  position: relative;
   background-color: rgba(255, 255, 255, 0.15);
   border-radius: 8px;
   padding: 15px;
@@ -258,6 +294,29 @@ const WorkoutCard = styled.div`
     margin: 5px 0;
     color: rgba(255, 255, 255, 0.8);
     font-size: 14px;
+  }
+`;
+
+const DeleteButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: rgba(255, 0, 0, 0.8);
+  color: white;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+  z-index: 2;
+
+  &:hover {
+    background-color: rgba(255, 0, 0, 1);
   }
 `;
 

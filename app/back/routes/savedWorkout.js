@@ -51,4 +51,25 @@ router.get('/saved-workouts', verifyToken, async (req, res) => {
   }
 });
 
+router.delete('/saved-workouts/:id', verifyToken, async (req, res) => {
+  try {
+    const workoutId = req.params.id;
+    const userId = req.user.uid;
+
+    // Find the workout and verify ownership
+    const workout = await SavedWorkout.findOne({ _id: workoutId, userId });
+    
+    if (!workout) {
+      return res.status(404).json({ error: 'Workout not found or unauthorized' });
+    }
+
+    // Delete the workout
+    await SavedWorkout.deleteOne({ _id: workoutId });
+    res.json({ message: 'Workout deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting workout:', error);
+    res.status(500).json({ error: 'Failed to delete workout' });
+  }
+});
+
 module.exports = router; 
