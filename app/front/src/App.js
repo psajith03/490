@@ -24,48 +24,41 @@ function App() {
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      setPersistence(auth, browserLocalPersistence)
-        .then(() => console.log("Auth persistence set to local storage"))
-        .catch(error => console.error("Error setting auth persistence:", error));
-  
-      const unsubscribe = onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          setUser(user);
-          try {
-            const idToken = await user.getIdToken(true);
-            const response = await fetch(`${API_URL}/api/auth/me`, {
-              headers: { 'Authorization': `Bearer ${idToken}` }
-            });
-  
-            if (response.ok) {
-              const userData = await response.json();
-              console.log("User data received:", userData);
-              setIsOnboardingComplete(userData.isOnboardingComplete || false);
-            } else {
-              if (response.status === 404) {
-                await auth.signOut();
-                setUser(null);
-              }
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => console.log("Auth persistence set to local storage"))
+      .catch(error => console.error("Error setting auth persistence:", error));
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setUser(user);
+        try {
+          const idToken = await user.getIdToken();
+          const response = await fetch(`${API_URL}/api/auth/me`, {
+            headers: { 'Authorization': `Bearer ${idToken}` }
+          });
+
+          if (response.ok) {
+            const userData = await response.json();
+            setIsOnboardingComplete(userData.isOnboardingComplete || false);
+          } else {
+            if (response.status === 404) {
+              await auth.signOut();
+              setUser(null);
             }
-          } catch (error) {
-            console.error('Error fetching user data:', error);
-            setIsOnboardingComplete(false);
           }
-        } else {
-          setUser(null);
+        } catch (error) {
+          console.error('Error fetching user data:', error);
           setIsOnboardingComplete(false);
         }
-        setLoading(false);
-      });
-  
-      return () => unsubscribe();
-    };
-  
-    fetchUserData();
+      } else {
+        setUser(null);
+        setIsOnboardingComplete(false);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
-  
-  
 
   if (loading) {
     return <div className="loading-container">Loading...</div>;

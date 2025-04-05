@@ -22,12 +22,6 @@ const Home = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        if (!auth.currentUser) {
-          console.warn("No authenticated user found. Redirecting...");
-          navigate('/');
-          return;
-        }
-
         const idToken = await auth.currentUser.getIdToken();
         const API_URL = "http://localhost:5000";
 
@@ -41,7 +35,7 @@ const Home = () => {
           const userData = await response.json();
           setPreferredName(userData.preferredName || 'Friend');
         } else {
-          console.error("Failed to fetch user data, redirecting to login...");
+          console.error("Failed to fetch user data");
           navigate('/');
         }
       } catch (error) {
@@ -71,7 +65,9 @@ const Home = () => {
     return () => clearInterval(interval);
   }, [preferredName]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) {
+    return <div className="loading-container">Loading...</div>;
+  }
 
   return (
     <>
@@ -94,9 +90,6 @@ const Home = () => {
     </>
   );
 };
-
-export default Home;
-
 
 const glowEffect = `
   border: .25em solid var(--glow-color);
@@ -134,7 +127,6 @@ const glowEffect = `
 
   &:hover {
     color: color-mix(in srgb, var(--glow-color) 70%, white);
-
     background-color: var(--glow-color);
     box-shadow: 0 0 1em .25em var(--glow-color),
           0 0 4em 2em var(--glow-spread-color),
@@ -170,24 +162,12 @@ const HomeWrapper = styled.div`
   }
 `;
 
-
 const Frame = styled.div`
   position: relative;
   width: 400px;
   height: 400px;
   transform: scale(1.4); 
   transform-origin: center;
-`;
-
-
-const BarBase = styled.div`
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 2rem;
-  color: #fff;
 `;
 
 const LeftBar = styled.div`
@@ -250,7 +230,6 @@ const BottomBar = styled.div`
   height: 60px;
 `;
 
-
 const CenterContent = styled.div`
   position: absolute;
   top: 80px;
@@ -280,7 +259,6 @@ const CenterContent = styled.div`
   }
 `;
 
-
 const Header = styled.div`
   position: fixed;
   top: 0;
@@ -305,7 +283,6 @@ const Header = styled.div`
   }
 `;
 
-
 const LogoutButton = styled.button`
   ${glowEffect}
   font-size: 14px;
@@ -315,3 +292,5 @@ const LogoutButton = styled.button`
   top: 50%;
   transform: translateY(-50%);
 `;
+
+export default Home;

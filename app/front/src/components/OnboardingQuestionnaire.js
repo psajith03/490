@@ -242,13 +242,9 @@ const OnboardingQuestionnaire = () => {
     }
 
     try {
-      const idToken = await auth.currentUser.getIdToken(true);
-      console.log("Sending ID Token:", idToken);
-
+      const idToken = await auth.currentUser.getIdToken();
       const apiBase = "http://localhost:5000";
       
-      console.log("Submitting form data:", JSON.stringify(formData, null, 2));
-
       const response = await fetch(`${apiBase}/api/auth/update-profile`, {
         method: 'POST',
         headers: {
@@ -273,21 +269,14 @@ const OnboardingQuestionnaire = () => {
       }
 
       const userData = await userResponse.json();
-      console.log("Updated user data received:", userData);
 
       if (userData.isOnboardingComplete) {
-        console.log("Onboarding complete! Navigating to home...");
-
         navigate('/home');
-
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
       } else {
         console.warn("Onboarding still incomplete after update:", userData);
       }
     } catch (error) {
-      console.error('🚨 Error saving questionnaire:', error);
+      console.error('Error saving questionnaire:', error);
       alert(`Error: ${error.message}`);
     }
   };
