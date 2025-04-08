@@ -37,7 +37,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api", exerciseRoutes);
+app.use("/api/exercise", exerciseRoutes);
 app.use("/api", savedWorkoutRoutes);
 
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })

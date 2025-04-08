@@ -22,6 +22,9 @@ const ExerciseHome = () => {
           <SavedWorkoutsButton onClick={() => navigate('/saved-workouts')}>
             Saved Workouts
           </SavedWorkoutsButton>
+          <CustomWorkoutButton onClick={() => navigate('/custom-workouts')}>
+            Create Custom Workout
+          </CustomWorkoutButton>
         </ButtonContainer>
       </Content>
     </ExerciseWrapper>
@@ -144,5 +147,21 @@ const SavedWorkoutsButton = styled.button`
 
   &:hover {
     background: #218838;
+  }
+`;
+
+const CustomWorkoutButton = styled.button`
+  padding: 12px 20px;
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  background: #ffc107;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+
+  &:hover {
+    background: #e0a800;
   }
 `;

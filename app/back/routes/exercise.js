@@ -21,26 +21,38 @@ const loadLocalExercises = () => {
   fs.createReadStream(csvPath)
     .pipe(csvParser())
     .on("data", (row) => {
+      console.log("Raw row data:", row);
+      if (!row.Title) {
+        console.error("Row missing Title:", row);
+        return;
+      }
       localExercises.push({
-        name: row.Title.trim(),
-        instructions: row.Desc?.trim() || "No instructions available",
-        target: row.BodyPart?.trim() || "Unknown",
-        equipment: row.Equipment?.trim() || "None",
+        Title: row.Title.trim(),
+        Desc: row.Desc?.trim() || "No instructions available",
+        BodyPart: row.BodyPart?.trim() || "Unknown",
+        Equipment: row.Equipment?.trim() || "None",
       });
     })
     .on("end", () => {
       console.log(`Successfully loaded ${localExercises.length} exercises from CSV`);
+      console.log("First few exercises:", localExercises.slice(0, 3));
+      const testSearch = "crunch";
+      const testMatches = localExercises
+        .filter(exercise => exercise.Title.toLowerCase().includes(testSearch))
+        .map(exercise => exercise.Title);
+      console.log(`Test search for "${testSearch}" found matches:`, testMatches);
     })
     .on("error", (error) => {
       console.error("Error loading CSV:", error.message);
     });
 };
+
 loadLocalExercises();
 
 const findExerciseLocally = (name) => {
   console.log(`Searching for exercise: "${name}" in local database.`);
   return localExercises.find(
-    (exercise) => exercise.name.toLowerCase() === name.toLowerCase().trim()
+    (exercise) => exercise.Title.toLowerCase() === name.toLowerCase().trim()
   );
 };
 
@@ -70,7 +82,33 @@ router.get("/full_recommendation", async (req, res) => {
   }
 });
 
-router.get("/exercise/:name", async (req, res) => {
+router.get("/search", (req, res) => {
+  const { query } = req.query;
+  
+  if (!query || query.length < 2) {
+    return res.status(400).json({ error: "Query must be at least 2 characters long" });
+  }
+
+  try {
+    const searchTerm = query.toLowerCase();
+    console.log(`Searching for: "${searchTerm}" in ${localExercises.length} exercises`);
+    
+    const matches = localExercises
+      .filter(exercise => exercise.Title.toLowerCase().includes(searchTerm))
+      .map(exercise => exercise.Title)
+      .slice(0, 10);
+
+    console.log(`Found ${matches.length} matches for query: ${query}`);
+    console.log("Matches:", matches);
+    
+    res.json(matches);
+  } catch (error) {
+    console.error("Error in search endpoint:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/:name", async (req, res) => {
   const { name } = req.params;
   console.log(`Received request for exercise: "${name}"`);
 
@@ -106,13 +144,13 @@ router.get("/exercise/:name", async (req, res) => {
   const localExercise = findExerciseLocally(name);
 
   if (localExercise) {
-    console.log("Found exercise in local database:", localExercise.name);
+    console.log("Found exercise in local database:", localExercise.Title);
     return res.json({
-      name: localExercise.name,
+      name: localExercise.Title,
       gifUrl: null,
-      target: localExercise.target || "N/A",
-      equipment: localExercise.equipment || "N/A",
-      instructions: [localExercise.instructions || "No instructions available"],
+      target: localExercise.BodyPart || "N/A",
+      equipment: localExercise.Equipment || "N/A",
+      instructions: [localExercise.Desc || "No instructions available"],
     });
   }
 
@@ -125,6 +163,5 @@ router.get("/exercise/:name", async (req, res) => {
     instructions: ["No instructions available"],
   });
 });
-
 
 module.exports = router;
