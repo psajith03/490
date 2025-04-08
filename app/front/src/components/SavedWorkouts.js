@@ -51,7 +51,7 @@ const SavedWorkouts = () => {
   }, []);
 
   const deleteWorkout = async (workoutId, e) => {
-    e.stopPropagation(); // Prevent opening the workout details when clicking delete
+    e.stopPropagation();
     if (!window.confirm('Are you sure you want to delete this workout?')) {
       return;
     }
@@ -75,7 +75,6 @@ const SavedWorkouts = () => {
         throw new Error('Failed to delete workout');
       }
 
-      // Update the local state to remove the deleted workout
       setSavedWorkouts(prevWorkouts => prevWorkouts.filter(workout => workout._id !== workoutId));
       alert('Workout deleted successfully');
     } catch (error) {
@@ -84,15 +83,22 @@ const SavedWorkouts = () => {
     }
   };
 
-  const fetchExerciseDetails = async (exerciseName) => {
+  const fetchExerciseDetails = async (exercise) => {
     setExerciseLoading(true);
     try {
+      const exerciseName = typeof exercise === 'string' ? exercise : exercise.name;
       const API_URL = `http://localhost:5000/api/exercise/${encodeURIComponent(exerciseName)}`;
+      console.log("Fetching exercise details from:", API_URL);
       const res = await fetch(API_URL);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
       const data = await res.json();
+      console.log("Received exercise details:", data);
       setSelectedExercise(data);
     } catch (error) {
       console.error("Error fetching exercise details:", error);
+      setSelectedExercise(null);
     } finally {
       setExerciseLoading(false);
     }
@@ -121,13 +127,11 @@ const SavedWorkouts = () => {
         throw new Error('Failed to update rating');
       }
 
-      // Update the local state
       const updatedWorkout = await response.json();
       setSelectedWorkout(updatedWorkout.workout);
       setRating(rating);
       setRatingSuccess(true);
       
-      // Hide success message after 2 seconds
       setTimeout(() => setRatingSuccess(false), 2000);
     } catch (error) {
       console.error("Error updating rating:", error);
@@ -243,7 +247,9 @@ const SavedWorkouts = () => {
                   <h4>{category.toUpperCase()}</h4>
                   <ul>
                     {exercises.map((exercise, index) => (
-                      <li key={index} onClick={() => fetchExerciseDetails(exercise)}>{exercise}</li>
+                      <li key={index} onClick={() => fetchExerciseDetails(exercise)}>
+                        {typeof exercise === 'string' ? exercise : exercise.name}
+                      </li>
                     ))}
                   </ul>
                 </WorkoutColumn>

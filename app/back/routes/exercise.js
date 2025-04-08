@@ -82,25 +82,20 @@ router.get("/full_recommendation", async (req, res) => {
   }
 });
 
-router.get("/search", (req, res) => {
-  const { query } = req.query;
-  
-  if (!query || query.length < 2) {
-    return res.status(400).json({ error: "Query must be at least 2 characters long" });
-  }
-
+router.get("/search", async (req, res) => {
   try {
-    const searchTerm = query.toLowerCase();
-    console.log(`Searching for: "${searchTerm}" in ${localExercises.length} exercises`);
-    
-    const matches = localExercises
-      .filter(exercise => exercise.Title.toLowerCase().includes(searchTerm))
-      .map(exercise => exercise.Title)
-      .slice(0, 10);
+    const query = req.query.query?.toLowerCase();
+    if (!query || query.length < 2) {
+      return res.status(400).json({ error: "Query must be at least 2 characters long" });
+    }
 
-    console.log(`Found ${matches.length} matches for query: ${query}`);
-    console.log("Matches:", matches);
-    
+    console.log("Searching for exercises matching:", query);
+    const matches = localExercises
+      .filter(exercise => exercise.Title.toLowerCase().includes(query))
+      .map(exercise => exercise.Title)
+      .sort((a, b) => a.length - b.length);
+
+    console.log(`Found ${matches.length} matches`);
     res.json(matches);
   } catch (error) {
     console.error("Error in search endpoint:", error);
@@ -114,7 +109,7 @@ router.get("/:name", async (req, res) => {
 
   try {
     console.log("Attempting API fetch from ExerciseDB...");
-    const response = await axios.get(`${process.env.API_URL}/${encodeURIComponent(name)}`, {
+    const response = await axios.get(`${process.env.API_URL}/${encodeURIComponent(name.toLowerCase())}`, {
       headers: {
         "X-RapidAPI-Key": process.env.API_KEY,
         "X-RapidAPI-Host": "exercisedb.p.rapidapi.com",

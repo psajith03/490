@@ -49,7 +49,8 @@ const CustomWorkouts = () => {
         type: data.target,
         equipment: data.equipment,
         muscle: data.target,
-        instructions: Array.isArray(data.instructions) ? data.instructions.join('\n') : data.instructions
+        instructions: Array.isArray(data.instructions) ? data.instructions.join('\n') : data.instructions,
+        gifUrl: data.gifUrl
       });
     } catch (error) {
       console.error("Error fetching exercise details:", error);
@@ -94,7 +95,7 @@ const CustomWorkouts = () => {
         },
         body: JSON.stringify({
           splitType: "custom",
-          exercises: { "Custom Workout": customWorkout },
+          exercises: { "Custom Workout": customWorkout.map(exercise => exercise.name) },
           name: workoutName || undefined
         })
       });
@@ -127,12 +128,12 @@ const CustomWorkouts = () => {
         <h1>Create Your Custom Workout</h1>
         
         <FormGroup>
-          <label>Workout Name:</label>
+          <label>Workout Name (Optional):</label>
           <input
             type="text"
             value={workoutName}
             onChange={(e) => setWorkoutName(e.target.value)}
-            placeholder="Enter workout name"
+            placeholder="Enter a name for your workout (optional)"
           />
         </FormGroup>
 
@@ -164,10 +165,34 @@ const CustomWorkouts = () => {
         {selectedExercise && (
           <ExerciseCard>
             <h3>{selectedExercise.name}</h3>
-            <p><strong>Type:</strong> {selectedExercise.type}</p>
-            <p><strong>Equipment:</strong> {selectedExercise.equipment}</p>
-            <p><strong>Muscle:</strong> {selectedExercise.muscle}</p>
-            <p><strong>Instructions:</strong> {selectedExercise.instructions}</p>
+            {selectedExercise.gifUrl ? (
+              <GifContainer>
+                <img 
+                  src={selectedExercise.gifUrl} 
+                  alt={selectedExercise.name}
+                  onError={(e) => {
+                    console.error("Failed to load GIF:", e.target.src);
+                    e.target.style.display = "none";
+                    const container = e.target.parentElement;
+                    const noGifMessage = document.createElement('p');
+                    noGifMessage.textContent = 'No GIF Found';
+                    noGifMessage.style.textAlign = 'center';
+                    noGifMessage.style.padding = '20px';
+                    container.appendChild(noGifMessage);
+                  }}
+                />
+              </GifContainer>
+            ) : (
+              <GifContainer>
+                <p style={{ textAlign: 'center', padding: '20px' }}>No GIF Found</p>
+              </GifContainer>
+            )}
+            <ExerciseDetails>
+              <p><strong>Type:</strong> {selectedExercise.type}</p>
+              <p><strong>Equipment:</strong> {selectedExercise.equipment}</p>
+              <p><strong>Muscle:</strong> {selectedExercise.muscle}</p>
+              <p><strong>Instructions:</strong> {selectedExercise.instructions}</p>
+            </ExerciseDetails>
             <AddButton onClick={addExerciseToWorkout}>Add to Workout</AddButton>
           </ExerciseCard>
         )}
@@ -178,9 +203,33 @@ const CustomWorkouts = () => {
             {customWorkout.map((exercise, index) => (
               <ExerciseCard key={index}>
                 <h3>{exercise.name}</h3>
-                <p><strong>Type:</strong> {exercise.type}</p>
-                <p><strong>Equipment:</strong> {exercise.equipment}</p>
-                <p><strong>Muscle:</strong> {exercise.muscle}</p>
+                {exercise.gifUrl ? (
+                  <GifContainer>
+                    <img 
+                      src={exercise.gifUrl} 
+                      alt={exercise.name}
+                      onError={(e) => {
+                        console.error("Failed to load GIF:", e.target.src);
+                        e.target.style.display = "none";
+                        const container = e.target.parentElement;
+                        const noGifMessage = document.createElement('p');
+                        noGifMessage.textContent = 'No GIF Found';
+                        noGifMessage.style.textAlign = 'center';
+                        noGifMessage.style.padding = '20px';
+                        container.appendChild(noGifMessage);
+                      }}
+                    />
+                  </GifContainer>
+                ) : (
+                  <GifContainer>
+                    <p style={{ textAlign: 'center', padding: '20px' }}>No GIF Found</p>
+                  </GifContainer>
+                )}
+                <ExerciseDetails>
+                  <p><strong>Type:</strong> {exercise.type}</p>
+                  <p><strong>Equipment:</strong> {exercise.equipment}</p>
+                  <p><strong>Muscle:</strong> {exercise.muscle}</p>
+                </ExerciseDetails>
               </ExerciseCard>
             ))}
             <SaveButton onClick={saveWorkout} disabled={saving}>
@@ -368,5 +417,30 @@ const SaveButton = styled.button`
   &:disabled {
     background-color: #ccc;
     cursor: not-allowed;
+  }
+`;
+
+const GifContainer = styled.div`
+  width: 100%;
+  max-width: 300px;
+  margin: 10px auto;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+  img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+`;
+
+const ExerciseDetails = styled.div`
+  margin: 15px 0;
+  text-align: left;
+  
+  p {
+    margin: 8px 0;
+    line-height: 1.4;
   }
 `; 
