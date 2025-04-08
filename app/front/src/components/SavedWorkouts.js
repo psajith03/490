@@ -226,11 +226,6 @@ const SavedWorkouts = () => {
               })}
             </StarRating>
             {ratingSuccess && <SuccessMessage>Rating saved successfully!</SuccessMessage>}
-            {selectedWorkout?.ratings?.[selectedExercise.name] && (
-              <CurrentRating>
-                Current rating: {selectedWorkout.ratings[selectedExercise.name]} stars
-              </CurrentRating>
-            )}
           </RatingContainer>
 
           <CloseButton onClick={() => setSelectedExercise(null)}>Close</CloseButton>
@@ -579,10 +574,4 @@ const SuccessMessage = styled.div`
     80% { opacity: 1; }
     100% { opacity: 0; }
   }
-`;
-
-const CurrentRating = styled.div`
-  margin-top: 10px;
-  color: #666;
-  font-style: italic;
 `; 
