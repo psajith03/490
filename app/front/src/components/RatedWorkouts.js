@@ -3,12 +3,50 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 
+const MUSCLE_GROUPS = [
+  "Abdominals", "Adductors", "Abductors", "Biceps", "Calves", "Chest",
+  "Forearms", "Glutes", "Hamstrings", "Lats", "Lower Back", "Middle Back",
+  "Traps", "Neck", "Quadriceps", "Shoulders", "Triceps"
+];
+
+const MUSCLE_MAPPING = {
+  "abdominals": ["Abdominals"],
+  "abs": ["Abdominals"],
+  "core": ["Abdominals"],
+  "obliques": ["Abdominals"],
+  
+  "adductors": ["Adductors"],
+  "abductors": ["Abductors"],
+  "calves": ["Calves"],
+  "glutes": ["Glutes"],
+  "hamstrings": ["Hamstrings"],
+  "quadriceps": ["Quadriceps"],
+  "quads": ["Quadriceps"],
+  
+  "biceps": ["Biceps"],
+  "chest": ["Chest"],
+  "forearms": ["Forearms"],
+  "lats": ["Lats"],
+  "lower back": ["Lower Back"],
+  "middle back": ["Middle Back"],
+  "traps": ["Traps"],
+  "neck": ["Neck"],
+  "shoulders": ["Shoulders"],
+  "triceps": ["Triceps"],
+  
+  "back": ["Lats", "Middle Back", "Lower Back", "Traps"],
+  "arms": ["Biceps", "Triceps", "Forearms"],
+  "legs": ["Quadriceps", "Hamstrings", "Calves", "Glutes", "Adductors", "Abductors"]
+};
+
 const RatedWorkouts = () => {
   const navigate = useNavigate();
   const [ratedExercises, setRatedExercises] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [exerciseLoading, setExerciseLoading] = useState(false);
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState(null);
+  const [exerciseDetails, setExerciseDetails] = useState({});
 
   useEffect(() => {
     const fetchRatedExercises = async () => {
@@ -31,7 +69,6 @@ const RatedWorkouts = () => {
         }
 
         const savedWorkouts = await response.json();
-        
         const allRatedExercises = savedWorkouts.reduce((acc, workout) => {
           if (workout.ratings && Object.keys(workout.ratings).length > 0) {
             Object.entries(workout.ratings).forEach(([exerciseName, rating]) => {
@@ -46,7 +83,58 @@ const RatedWorkouts = () => {
           return acc;
         }, []);
 
-        setRatedExercises(allRatedExercises);
+        const exerciseRatings = allRatedExercises.reduce((acc, exercise) => {
+          if (!acc[exercise.exerciseName]) {
+            acc[exercise.exerciseName] = {
+              totalRating: 0,
+              count: 0,
+              latestWorkout: exercise.workoutName,
+              latestDate: exercise.createdAt
+            };
+          }
+          acc[exercise.exerciseName].totalRating += exercise.rating;
+          acc[exercise.exerciseName].count += 1;
+          
+          if (new Date(exercise.createdAt) > new Date(acc[exercise.exerciseName].latestDate)) {
+            acc[exercise.exerciseName].latestWorkout = exercise.workoutName;
+            acc[exercise.exerciseName].latestDate = exercise.createdAt;
+          }
+          
+          return acc;
+        }, {});
+
+        const averagedExercises = Object.entries(exerciseRatings).map(([exerciseName, data]) => ({
+          exerciseName,
+          rating: Math.round((data.totalRating / data.count) * 10) / 10,
+          workoutName: data.latestWorkout,
+          createdAt: data.latestDate,
+          ratingCount: data.count
+        }));
+
+        setRatedExercises(averagedExercises);
+
+        const details = {};
+        for (const exercise of averagedExercises) {
+          if (!details[exercise.exerciseName]) {
+            try {
+              const exerciseResponse = await fetch(`http://localhost:5000/api/exercise/${encodeURIComponent(exercise.exerciseName)}`);
+              const data = await exerciseResponse.json();
+              details[exercise.exerciseName] = {
+                target: data.target || 'Other',
+                equipment: data.equipment,
+                instructions: data.instructions
+              };
+            } catch (error) {
+              console.error(`Error fetching details for ${exercise.exerciseName}:`, error);
+              details[exercise.exerciseName] = {
+                target: 'Other',
+                equipment: 'Unknown',
+                instructions: []
+              };
+            }
+          }
+        }
+        setExerciseDetails(details);
       } catch (error) {
         console.error('Error fetching rated exercises:', error);
       } finally {
@@ -70,6 +158,32 @@ const RatedWorkouts = () => {
     }
   };
 
+  const getTargetMuscles = (target) => {
+    if (!target) return ['Other'];
+    const targetLower = target.toLowerCase();
+    for (const [key, muscles] of Object.entries(MUSCLE_MAPPING)) {
+      if (targetLower.includes(key)) {
+        return muscles;
+      }
+    }
+    return [target];
+  };
+
+  const getFilteredExercises = () => {
+    if (selectedMuscleGroup) {
+      return ratedExercises.filter(exercise => {
+        const target = exerciseDetails[exercise.exerciseName]?.target;
+        if (!target) return false;
+        
+        const targetMuscles = getTargetMuscles(target);
+        return targetMuscles.includes(selectedMuscleGroup);
+      });
+    }
+    return ratedExercises;
+  };
+
+  const filteredExercises = getFilteredExercises();
+
   return (
     <WorkoutWrapper>
       <Header>
@@ -80,16 +194,40 @@ const RatedWorkouts = () => {
       </Header>
       <Content>
         <h1>Your Rated Exercises</h1>
+        
+        <MuscleGroupButtons>
+          {MUSCLE_GROUPS.map((muscle) => (
+            <MuscleGroupButton
+              key={muscle}
+              onClick={() => setSelectedMuscleGroup(muscle)}
+              active={selectedMuscleGroup === muscle}
+            >
+              {muscle}
+            </MuscleGroupButton>
+          ))}
+          <MuscleGroupButton
+            onClick={() => setSelectedMuscleGroup(null)}
+            active={selectedMuscleGroup === null}
+          >
+            All
+          </MuscleGroupButton>
+        </MuscleGroupButtons>
+
         {loading ? (
           <LoadingMessage>Loading rated exercises...</LoadingMessage>
-        ) : ratedExercises.length === 0 ? (
-          <NoWorkoutsMessage>No rated exercises yet. Rate some exercises to see them here!</NoWorkoutsMessage>
+        ) : filteredExercises.length === 0 ? (
+          <NoWorkoutsMessage>
+            {selectedMuscleGroup
+              ? `No rated exercises for ${selectedMuscleGroup} yet.`
+              : 'No rated exercises yet. Rate some exercises to see them here!'}
+          </NoWorkoutsMessage>
         ) : (
           <WorkoutGrid>
-            {ratedExercises.map((exercise, index) => (
+            {filteredExercises.map((exercise, index) => (
               <WorkoutCard key={`${exercise.exerciseName}-${index}`}>
                 <h4>{exercise.exerciseName}</h4>
-                <p>Rating: {'★'.repeat(exercise.rating)}{'☆'.repeat(5 - exercise.rating)}</p>
+                <p>Rating: {'★'.repeat(Math.round(exercise.rating))}{'☆'.repeat(5 - Math.round(exercise.rating))} ({exercise.rating.toFixed(1)})</p>
+                {exercise.ratingCount > 1 && <p>Based on {exercise.ratingCount} ratings</p>}
                 <p>From: {exercise.workoutName}</p>
                 <p>Rated on: {new Date(exercise.createdAt).toLocaleDateString()}</p>
                 <ViewButton onClick={() => fetchExerciseDetails(exercise.exerciseName)}>View Exercise</ViewButton>
@@ -328,4 +466,28 @@ const NoWorkoutsMessage = styled.p`
   background: rgba(255, 255, 255, 0.9);
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+`;
+
+const MuscleGroupButtons = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin: 20px 0;
+`;
+
+const MuscleGroupButton = styled.button`
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  background: ${props => props.active ? '#6f42c1' : '#6c757d'};
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s;
+
+  &:hover {
+    background: ${props => props.active ? '#5a32a3' : '#5a6268'};
+  }
 `; 
