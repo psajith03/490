@@ -56,19 +56,46 @@ router.delete('/saved-workouts/:id', verifyToken, async (req, res) => {
     const workoutId = req.params.id;
     const userId = req.user.uid;
 
-    // Find the workout and verify ownership
     const workout = await SavedWorkout.findOne({ _id: workoutId, userId });
     
     if (!workout) {
       return res.status(404).json({ error: 'Workout not found or unauthorized' });
     }
 
-    // Delete the workout
     await SavedWorkout.deleteOne({ _id: workoutId });
     res.json({ message: 'Workout deleted successfully' });
   } catch (error) {
     console.error('Error deleting workout:', error);
     res.status(500).json({ error: 'Failed to delete workout' });
+  }
+});
+
+router.patch('/saved-workouts/:id/rate', verifyToken, async (req, res) => {
+  try {
+    const workoutId = req.params.id;
+    const userId = req.user.uid;
+    const { exerciseName, rating } = req.body;
+
+    if (!exerciseName || rating === undefined || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'Invalid rating data' });
+    }
+
+    const workout = await SavedWorkout.findOne({ _id: workoutId, userId });
+    
+    if (!workout) {
+      return res.status(404).json({ error: 'Workout not found or unauthorized' });
+    }
+
+    workout.ratings = {
+      ...workout.ratings,
+      [exerciseName]: rating
+    };
+
+    await workout.save();
+    res.json({ message: 'Rating updated successfully', workout });
+  } catch (error) {
+    console.error('Error updating rating:', error);
+    res.status(500).json({ error: 'Failed to update rating' });
   }
 });
 

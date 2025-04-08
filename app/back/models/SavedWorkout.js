@@ -16,6 +16,10 @@ const savedWorkoutSchema = new mongoose.Schema({
   name: {
     type: String
   },
+  ratings: {
+    type: Object,
+    default: {}
+  },
   createdAt: {
     type: Date,
     default: Date.now

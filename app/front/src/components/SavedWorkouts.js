@@ -10,6 +10,9 @@ const SavedWorkouts = () => {
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [exerciseLoading, setExerciseLoading] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [hover, setHover] = useState(0);
+  const [ratingSuccess, setRatingSuccess] = useState(false);
 
   const fetchSavedWorkouts = async () => {
     try {
@@ -95,6 +98,50 @@ const SavedWorkouts = () => {
     }
   };
 
+  const handleRating = async (exerciseName, rating) => {
+    if (!selectedWorkout) return;
+
+    try {
+      const idToken = await auth.currentUser?.getIdToken(true);
+      if (!idToken) {
+        throw new Error("User not authenticated");
+      }
+
+      const API_URL = "http://localhost:5000";
+      const response = await fetch(`${API_URL}/api/saved-workouts/${selectedWorkout._id}/rate`, {
+        method: "PATCH",
+        headers: {
+          "Authorization": `Bearer ${idToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ exerciseName, rating })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update rating');
+      }
+
+      // Update the local state
+      const updatedWorkout = await response.json();
+      setSelectedWorkout(updatedWorkout.workout);
+      setRating(rating);
+      setRatingSuccess(true);
+      
+      // Hide success message after 2 seconds
+      setTimeout(() => setRatingSuccess(false), 2000);
+    } catch (error) {
+      console.error("Error updating rating:", error);
+      alert(`Failed to update rating: ${error.message}`);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedExercise && selectedWorkout?.ratings) {
+      const currentRating = selectedWorkout.ratings[selectedExercise.name] || 0;
+      setRating(currentRating);
+    }
+  }, [selectedExercise, selectedWorkout]);
+
   if (loading) return <LoadingMessage>Loading saved workouts...</LoadingMessage>;
 
   return (
@@ -158,6 +205,33 @@ const SavedWorkouts = () => {
               <li>No instructions available</li>
             )}
           </ul>
+
+          <RatingContainer>
+            <h4>Rate this exercise:</h4>
+            <StarRating>
+              {[...Array(5)].map((star, index) => {
+                index += 1;
+                return (
+                  <StarButton
+                    key={index}
+                    onClick={() => handleRating(selectedExercise.name, index)}
+                    onMouseEnter={() => setHover(index)}
+                    onMouseLeave={() => setHover(rating)}
+                  >
+                    <span className={index <= (hover || rating) ? "on" : "off"}>
+                      {index <= (hover || rating) ? "★" : "☆"}
+                    </span>
+                  </StarButton>
+                );
+              })}
+            </StarRating>
+            {ratingSuccess && <SuccessMessage>Rating saved successfully!</SuccessMessage>}
+            {selectedWorkout?.ratings?.[selectedExercise.name] && (
+              <CurrentRating>
+                Current rating: {selectedWorkout.ratings[selectedExercise.name]} stars
+              </CurrentRating>
+            )}
+          </RatingContainer>
 
           <CloseButton onClick={() => setSelectedExercise(null)}>Close</CloseButton>
         </ExerciseCard>
@@ -463,4 +537,52 @@ const LoadingMessage = styled.p`
   font-size: 1.2em;
   color: #666;
   margin-top: 100px;
+`;
+
+const RatingContainer = styled.div`
+  margin: 20px 0;
+  text-align: center;
+`;
+
+const StarRating = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+`;
+
+const StarButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  padding: 0;
+  
+  span {
+    color: #ccc;
+    transition: color 0.2s;
+    
+    &.on {
+      color: #ffd700;
+    }
+  }
+`;
+
+const SuccessMessage = styled.div`
+  color: #4CAF50;
+  margin-top: 10px;
+  font-weight: bold;
+  animation: fadeInOut 2s ease-in-out;
+  
+  @keyframes fadeInOut {
+    0% { opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+`;
+
+const CurrentRating = styled.div`
+  margin-top: 10px;
+  color: #666;
+  font-style: italic;
 `; 
