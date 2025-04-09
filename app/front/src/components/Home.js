@@ -141,33 +141,51 @@ const glowEffect = `
 `;
 
 const HomeWrapper = styled.div`
-  position: absolute;
-  inset: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 0;
-  height: 100%;
-  width: 100%;
   display: flex;
   align-items: center;
-  justify-content: center; 
-  text-align: center; 
-  padding: 24px 5%;
+  justify-content: center;
+  text-align: center;
   background: linear-gradient(45deg, #B7E4C7, #FFE066, #74C0FC, #c4a7e7);
   background-size: 400% 400%;
   animation: gradientAnimation 10s ease infinite;
+  overflow: hidden;
 
   @keyframes gradientAnimation {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
   }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: inherit;
+    z-index: -1;
+  }
 `;
 
 const Frame = styled.div`
   position: relative;
-  width: 400px;
-  height: 400px;
+  width: min(400px, 90vw);
+  height: min(400px, 90vw);
   transform: scale(1.4); 
   transform-origin: center;
+
+  @media (max-width: 768px) {
+    transform: scale(1);
+    width: 90vw;
+    height: 90vw;
+  }
 `;
 
 const LeftBar = styled.div`
@@ -178,12 +196,18 @@ const LeftBar = styled.div`
   --btn-color: rgb(150, 80, 0);
 
   position: absolute;
-  top: 80px;
+  top: 20%;
   left: 0;
-  width: 60px;
-  height: 240px;
+  width: 15%;
+  height: 60%;
   writing-mode: vertical-lr;
   text-orientation: upright;
+  font-size: clamp(14px, 3vw, 20px);
+
+  @media (max-width: 768px) {
+    width: 20%;
+    height: 50%;
+  }
 `;
 
 const TopBar = styled.div`
@@ -195,9 +219,16 @@ const TopBar = styled.div`
 
   position: absolute;
   top: 0;
-  left: 80px;
-  width: 240px;
-  height: 60px;
+  left: 20%;
+  width: 60%;
+  height: 20%;
+  font-size: clamp(14px, 3vw, 20px);
+
+  @media (max-width: 768px) {
+    left: 20%;
+    width: 60%;
+    height: 15%;
+  }
 `;
 
 const RightBar = styled.div`
@@ -208,12 +239,18 @@ const RightBar = styled.div`
   --btn-color: rgb(50, 0, 90);
 
   position: absolute;
-  top: 80px;
+  top: 20%;
   right: 0;
-  width: 60px;
-  height: 240px;
+  width: 15%;
+  height: 60%;
   writing-mode: vertical-lr;
   text-orientation: upright;
+  font-size: clamp(14px, 3vw, 20px);
+
+  @media (max-width: 768px) {
+    width: 20%;
+    height: 50%;
+  }
 `;
 
 const BottomBar = styled.div`
@@ -225,17 +262,24 @@ const BottomBar = styled.div`
 
   position: absolute;
   bottom: 0;
-  left: 80px;
-  width: 240px;
-  height: 60px;
+  left: 20%;
+  width: 60%;
+  height: 20%;
+  font-size: clamp(14px, 3vw, 20px);
+
+  @media (max-width: 768px) {
+    left: 20%;
+    width: 60%;
+    height: 15%;
+  }
 `;
 
 const CenterContent = styled.div`
   position: absolute;
-  top: 80px;
-  bottom: 80px;
-  left: 80px;
-  right: 80px;
+  top: 20%;
+  bottom: 20%;
+  left: 20%;
+  right: 20%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -244,7 +288,7 @@ const CenterContent = styled.div`
   z-index: 10;
 
   h2 {
-    font-size: 45px;
+    font-size: clamp(24px, 5vw, 45px);
     font-weight: bold;
     color: white;
     text-shadow: 3px 3px 6px rgba(237, 59, 178, 0.5);
@@ -253,7 +297,7 @@ const CenterContent = styled.div`
   }
 
   p {
-    font-size: 20px;
+    font-size: clamp(14px, 3vw, 20px);
     color: white;
     margin-bottom: 20px;
   }

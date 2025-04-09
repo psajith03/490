@@ -131,7 +131,7 @@ const DeleteButton = styled.button`
   color: red;
   font-size: 18px;
   cursor: pointer;
-  margin-left: 130px;
+  padding: 0 10px;
 
   &:hover {
     color: darkred;
@@ -182,22 +182,86 @@ const Header = styled.div`
 
 const TaskInput = styled.div`
   display: flex;
+  flex-direction: column;
   gap: 10px;
   margin-bottom: 20px;
   justify-content: center;
+  width: 100%;
+  max-width: 600px;
+  padding: 0 20px;
+
+  input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+
+  select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+
+  button {
+    width: 100%;
+    padding: 10px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+
+    &:hover {
+      background: #0056b3;
+    }
+  }
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+
+    input {
+      width: 60%;
+    }
+
+    select {
+      width: 20%;
+    }
+
+    button {
+      width: 20%;
+    }
+  }
 `;
 
 const TaskWrapper = styled.div`
   display: flex;
+  flex-direction: column;
   gap: 20px;
   justify-content: center;
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 20px;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+  }
 `;
 
 const TaskBox = styled.div`
-  background:rgb(0, 0, 0);
+  background: rgb(0, 0, 0);
   padding: 15px;
   border-radius: 8px;
-  min-width: 250px;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+
+  @media (min-width: 768px) {
+    min-width: 250px;
+  }
 `;
 
 const TaskItem = styled.div`
@@ -205,6 +269,19 @@ const TaskItem = styled.div`
   align-items: center;
   gap: 10px;
   margin: 5px 0;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+
+  input[type="checkbox"] {
+    min-width: 20px;
+    height: 20px;
+  }
+
+  span {
+    flex-grow: 1;
+    word-break: break-word;
+  }
 `;
 
 const HomeButton = styled.button`
@@ -244,13 +321,18 @@ const HomeButton = styled.button`
 const Content = styled.div`
   margin-top: 80px;
   text-align: center;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
 
   h1 {
-    font-size: 36px;
+    font-size: clamp(24px, 5vw, 36px);
     margin-bottom: 20px;
   }
 
   p {
-    font-size: 18px;
+    font-size: clamp(14px, 3vw, 18px);
   }
 `;
