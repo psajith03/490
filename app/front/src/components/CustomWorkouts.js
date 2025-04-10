@@ -121,7 +121,7 @@ const CustomWorkouts = () => {
       <Header>
         <span>Create Custom Workout</span>
         <ButtonContainer>
-          <HomeButton onClick={() => navigate('/exercise-home')}>Back to Exercise Home</HomeButton>
+          <HomeButton onClick={() => navigate('/exercise-home')}>Exercise Home</HomeButton>
         </ButtonContainer>
       </Header>
       <Content>

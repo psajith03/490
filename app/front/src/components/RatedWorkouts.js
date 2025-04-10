@@ -189,7 +189,7 @@ const RatedWorkouts = () => {
       <Header>
         <span>Rated Workouts</span>
         <ButtonContainer>
-          <HomeButton onClick={() => navigate('/exercise-home')}>Back to Exercise Home</HomeButton>
+          <HomeButton onClick={() => navigate('/exercise-home')}>Exercise Home</HomeButton>
         </ButtonContainer>
       </Header>
       <Content>

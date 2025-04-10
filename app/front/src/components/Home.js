@@ -6,7 +6,7 @@ import styled from 'styled-components';
 
 const Home = () => {
   const navigate = useNavigate();
-  const [preferredName, setPreferredName] = useState('');
+  const [name, setName] = useState('');
   const [displayText, setDisplayText] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -33,7 +33,7 @@ const Home = () => {
 
         if (response.ok) {
           const userData = await response.json();
-          setPreferredName(userData.preferredName || 'Friend');
+          setName(userData.name || 'Friend');
         } else {
           console.error("Failed to fetch user data");
           navigate('/');
@@ -50,10 +50,10 @@ const Home = () => {
   }, [navigate]);
 
   useEffect(() => {
-    if (!preferredName) return;
+    if (!name) return;
 
     let i = 0;
-    const fullText = `Welcome ${preferredName}!`;
+    const fullText = `Welcome ${name}!`;
     setDisplayText("");
 
     const interval = setInterval(() => {
@@ -63,7 +63,7 @@ const Home = () => {
     }, 100);
 
     return () => clearInterval(interval);
-  }, [preferredName]);
+  }, [name]);
 
   if (loading) {
     return <div className="loading-container">Loading...</div>;

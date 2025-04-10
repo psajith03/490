@@ -52,8 +52,7 @@ router.post("/register", authenticate, async (req, res) => {
     user = new User({
       firebaseUID,
       name,
-      email,
-      isOnboardingComplete: false,
+      email
     });
 
     await user.save();
@@ -75,10 +74,8 @@ router.get("/me", authenticate, async (req, res) => {
     }
 
     res.json({
-      preferredName: user.preferredName || "",
       name: user.name,
-      email: user.email,
-      isOnboardingComplete: user.isOnboardingComplete,
+      email: user.email
     });
   } catch (error) {
     console.error("Error retrieving user profile:", error);
