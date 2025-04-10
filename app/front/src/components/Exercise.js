@@ -117,8 +117,8 @@ const Exercise = () => {
     }
 
     try {
-      const API_URL = "http://localhost:5000";
-      let url = `${API_URL}/api/full_recommendation?split_type=${selectedSplit}`;
+      const API_URL = "http://localhost:5001";
+      let url = `${API_URL}/full_recommendation?split_type=${selectedSplit}`;
       if (selectedEquipment.length > 0) { url += `&equipment=${encodeURIComponent(selectedEquipment.join(','))}`; }
       if (selectedExerciseTypes.length > 0) { url += `&exercise_type=${encodeURIComponent(selectedExerciseTypes.join(','))}`; }
       console.log(`Fetching workout plan from: ${url}`);
@@ -146,7 +146,7 @@ const Exercise = () => {
   const fetchExerciseDetails = async (exerciseName) => {
     setExerciseLoading(true);
     try {
-      const API_URL = `http://localhost:5000/api/exercise/${encodeURIComponent(exerciseName)}`;
+      const API_URL = `http://localhost:5001/api/exercise/${encodeURIComponent(exerciseName)}`;
       const res = await fetch(API_URL);
       const data = await res.json();
       setSelectedExercise(data);

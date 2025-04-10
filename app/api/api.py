@@ -8,7 +8,18 @@ from full_recommendation import generate_full_workout_plan
 
 load_dotenv()
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["http://localhost:3000"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    },
+    r"/*": {
+        "origins": ["http://localhost:3000"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 
 USDA_API_KEY = os.getenv("USDA_API_KEY")
 USDA_BASE_URL = os.getenv("USDA_BASE_URL")
@@ -154,6 +165,33 @@ def get_nutrition():
         return jsonify({"error": "Failed to fetch nutrition data"}), 500
 
     return jsonify(nutrition_data)
+
+@app.route('/api/saved-workouts', methods=['POST'])
+def save_workout():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+
+        split_type = data.get('splitType')
+        exercises = data.get('exercises')
+        name = data.get('name')
+
+        if not split_type or not exercises:
+            return jsonify({"error": "Missing required fields"}), 400
+
+
+        return jsonify({
+            "message": "Workout saved successfully",
+            "workout": {
+                "name": name,
+                "split_type": split_type,
+                "exercises": exercises
+            }
+        }), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
