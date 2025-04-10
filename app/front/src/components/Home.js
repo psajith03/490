@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import styled from 'styled-components';
+import SettingsModal from './SettingsModal';
 
 const Home = () => {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [displayText, setDisplayText] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -16,6 +18,31 @@ const Home = () => {
       navigate('/');
     } catch (error) {
       console.error('Error logging out:', error);
+    }
+  };
+
+  const handleNameChange = async (newName) => {
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const API_URL = "http://localhost:5000";
+
+      const response = await fetch(`${API_URL}/api/auth/update-name`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: newName }),
+      });
+
+      if (response.ok) {
+        setName(newName);
+        setDisplayText(`Welcome ${newName}!`);
+      } else {
+        console.error("Failed to update name");
+      }
+    } catch (error) {
+      console.error('Error updating name:', error);
     }
   };
 
@@ -73,7 +100,10 @@ const Home = () => {
     <>
       <Header>
         <span>Habit</span>
-        <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+        <HeaderRight>
+          <SettingsButton onClick={() => setIsSettingsOpen(true)}>⚙️</SettingsButton>
+          <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+        </HeaderRight>
       </Header>
       <HomeWrapper>
         <Frame>
@@ -87,6 +117,12 @@ const Home = () => {
           </CenterContent>
         </Frame>
       </HomeWrapper>
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        currentName={name}
+        onNameChange={handleNameChange}
+      />
     </>
   );
 };
@@ -324,6 +360,29 @@ const Header = styled.div`
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
+  }
+`;
+
+const HeaderRight = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const SettingsButton = styled.button`
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.1);
   }
 `;
 

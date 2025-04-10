@@ -116,4 +116,30 @@ router.post("/update-profile", authenticate, async (req, res) => {
   }
 });
 
+router.post("/update-name", authenticate, async (req, res) => {
+  try {
+    const { name } = req.body;
+    const user = await User.findOne({ firebaseUID: req.user.uid });
+
+    if (!user) {
+      console.error("User not found for UID:", req.user.uid);
+      return res.status(404).json({ error: "User not found. Please complete registration." });
+    }
+
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ error: "Name cannot be empty" });
+    }
+
+    user.name = name.trim();
+    user.updatedAt = new Date();
+    await user.save();
+
+    console.log("Name updated successfully for:", user.email);
+    res.json({ message: "Name updated successfully!", name: user.name });
+  } catch (error) {
+    console.error("Name update error:", error);
+    res.status(500).json({ error: "Error updating name" });
+  }
+});
+
 module.exports = router;
