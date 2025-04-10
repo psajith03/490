@@ -15,7 +15,6 @@ const DietHome = () => {
         </ButtonContainer>
       </Header>
       <Content>
-        <h1>Select an option to proceed.</h1>
         <GenerateButton onClick={() => navigate('/Diet')}>
           Generate Meal based on Ingredients
         </GenerateButton>

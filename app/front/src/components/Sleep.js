@@ -181,6 +181,23 @@ const HomeButton = styled.button`
   top: 50%;
   transform: translateY(-50%);
   padding: 8px 16px;
+  font-size: 14px;
+  font-weight: bold;
+  border: .25em solid rgb(217, 176, 255);
+  background-color: #fff;
+  color: rgb(217, 176, 255);
+  border-radius: 1em;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 0 1em .25em rgb(217, 176, 255),
+              0 0 4em 1em rgba(191, 123, 255, 0.5),
+              inset 0 0 .75em .25em rgb(217, 176, 255);
+  text-shadow: 0 0 .5em rgb(217, 176, 255);
+
+  &:hover {
+    background-color: rgb(217, 176, 255);
+    color: #222;
+  }
 `;
 
 const Content = styled.div`
