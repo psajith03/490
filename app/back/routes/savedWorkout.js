@@ -99,4 +99,57 @@ router.patch('/saved-workouts/:id/rate', verifyToken, async (req, res) => {
   }
 });
 
+router.patch('/saved-workouts/:id/exercises', verifyToken, async (req, res) => {
+  try {
+    const workoutId = req.params.id;
+    const userId = req.user.uid;
+    const { exerciseName, category } = req.body;
+
+    if (!exerciseName || !category) {
+      return res.status(400).json({ error: 'Missing exercise name or category' });
+    }
+
+    const workout = await SavedWorkout.findOne({ _id: workoutId, userId });
+    
+    if (!workout) {
+      return res.status(404).json({ error: 'Workout not found or unauthorized' });
+    }
+
+    if (workout.exercises[category]) {
+      workout.exercises[category] = workout.exercises[category].filter(
+        exercise => exercise.toLowerCase() !== exerciseName.toLowerCase()
+      );
+
+      if (workout.exercises[category].length === 0) {
+        delete workout.exercises[category];
+      }
+
+      if (Object.keys(workout.exercises).length === 0) {
+        await SavedWorkout.deleteOne({ _id: workoutId });
+        return res.status(200).json({ message: 'Workout deleted as it had no exercises left' });
+      }
+
+      const updatedWorkout = await SavedWorkout.findByIdAndUpdate(
+        workoutId,
+        { $set: { exercises: workout.exercises } },
+        { new: true }
+      );
+
+      if (!updatedWorkout) {
+        throw new Error('Failed to update workout');
+      }
+
+      return res.status(200).json({ 
+        message: 'Exercise deleted successfully', 
+        workout: updatedWorkout 
+      });
+    }
+
+    return res.status(404).json({ error: 'Exercise not found in the specified category' });
+  } catch (error) {
+    console.error('Error deleting exercise:', error);
+    res.status(500).json({ error: 'Failed to delete exercise' });
+  }
+});
+
 module.exports = router; 

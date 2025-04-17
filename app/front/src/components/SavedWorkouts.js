@@ -88,16 +88,16 @@ const SavedWorkouts = () => {
     try {
       const exerciseName = typeof exercise === 'string' ? exercise : exercise.name;
       const API_URL = `http://localhost:5000/api/exercise/${encodeURIComponent(exerciseName)}`;
-      console.log("Fetching exercise details from:", API_URL);
       const res = await fetch(API_URL);
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       const data = await res.json();
-      console.log("Received exercise details:", data);
-      setSelectedExercise(data);
+      setSelectedExercise({
+        ...data,
+        originalName: exerciseName
+      });
     } catch (error) {
-      console.error("Error fetching exercise details:", error);
       setSelectedExercise(null);
     } finally {
       setExerciseLoading(false);
@@ -146,15 +146,62 @@ const SavedWorkouts = () => {
     }
   }, [selectedExercise, selectedWorkout]);
 
+  const deleteExercise = async (exerciseName, category) => {
+    if (!window.confirm('Are you sure you want to delete this exercise?')) {
+      return;
+    }
+
+    try {
+      const idToken = await auth.currentUser?.getIdToken(true);
+      if (!idToken) {
+        throw new Error("User not authenticated");
+      }
+
+      const API_URL = "http://localhost:5000";
+      const response = await fetch(`${API_URL}/api/saved-workouts/${selectedWorkout._id}/exercises`, {
+        method: "PATCH",
+        headers: {
+          "Authorization": `Bearer ${idToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ exerciseName, category })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete exercise');
+      }
+
+      const data = await response.json();
+      
+      if (data.message === 'Workout deleted as it had no exercises left') {
+        setSavedWorkouts(prevWorkouts => prevWorkouts.filter(w => w._id !== selectedWorkout._id));
+        setSelectedWorkout(null);
+        setSelectedExercise(null);
+        alert('Workout deleted as it had no exercises left');
+      } else {
+        setSavedWorkouts(prevWorkouts => 
+          prevWorkouts.map(workout => 
+            workout._id === selectedWorkout._id ? data.workout : workout
+          )
+        );
+        setSelectedWorkout(null);
+        setSelectedExercise(null);
+        alert('Exercise deleted successfully');
+      }
+    } catch (error) {
+      alert(`Failed to delete exercise: ${error.message}`);
+    }
+  };
+
   if (loading) return <LoadingMessage>Loading saved workouts...</LoadingMessage>;
 
   return (
     <WorkoutWrapper>
       <Header>
         <span>Saved Workouts</span>
-        <ButtonContainer>
+        <HeaderButtonContainer>
           <HomeButton onClick={() => navigate('/exercise-home')}>Exercise Home</HomeButton>
-        </ButtonContainer>
+        </HeaderButtonContainer>
       </Header>
       <Content>
         <h1>Your Saved Workouts</h1>
@@ -179,7 +226,7 @@ const SavedWorkouts = () => {
 
       {exerciseLoading && <p>Loading exercise details...</p>}
 
-      {selectedExercise && (
+      {selectedExercise && selectedWorkout && (
         <ExerciseCard>
           <h2>{selectedExercise.name}</h2>
 
@@ -188,7 +235,6 @@ const SavedWorkouts = () => {
               src={selectedExercise.gifUrl} 
               alt={selectedExercise.name} 
               onError={(e) => {
-                console.error("Failed to load GIF:", e.target.src);
                 e.target.style.display = "none";
               }}
             />
@@ -218,7 +264,7 @@ const SavedWorkouts = () => {
                 return (
                   <StarButton
                     key={index}
-                    onClick={() => handleRating(selectedExercise.name, index)}
+                    onClick={() => handleRating(selectedExercise.originalName, index)}
                     onMouseEnter={() => setHover(index)}
                     onMouseLeave={() => setHover(rating)}
                   >
@@ -232,7 +278,32 @@ const SavedWorkouts = () => {
             {ratingSuccess && <SuccessMessage>Rating saved successfully!</SuccessMessage>}
           </RatingContainer>
 
-          <CloseButton onClick={() => setSelectedExercise(null)}>Close</CloseButton>
+          <ButtonContainer>
+            <DeleteExerciseButton onClick={() => {
+              let foundCategory = null;
+              let exerciseName = selectedExercise.originalName;
+              
+              for (const [category, exercises] of Object.entries(selectedWorkout.exercises)) {
+                const foundExercise = exercises.find(ex => {
+                  const exName = typeof ex === 'string' ? ex : ex.name;
+                  return exName.toLowerCase() === exerciseName.toLowerCase();
+                });
+                
+                if (foundExercise) {
+                  foundCategory = category;
+                  exerciseName = typeof foundExercise === 'string' ? foundExercise : foundExercise.name;
+                  break;
+                }
+              }
+              
+              if (foundCategory && exerciseName) {
+                deleteExercise(exerciseName, foundCategory);
+              } else {
+                alert('Error: Could not find exercise in workout');
+              }
+            }}>Delete Exercise</DeleteExerciseButton>
+            <CloseButton onClick={() => setSelectedExercise(null)}>Close</CloseButton>
+          </ButtonContainer>
         </ExerciseCard>
       )}
 
@@ -247,7 +318,13 @@ const SavedWorkouts = () => {
                   <h4>{category.toUpperCase()}</h4>
                   <ul>
                     {exercises.map((exercise, index) => (
-                      <li key={index} onClick={() => fetchExerciseDetails(exercise)}>
+                      <li 
+                        key={index} 
+                        onClick={() => {
+                          const exerciseName = typeof exercise === 'string' ? exercise : exercise.name;
+                          fetchExerciseDetails(exerciseName);
+                        }}
+                      >
                         {typeof exercise === 'string' ? exercise : exercise.name}
                       </li>
                     ))}
@@ -293,23 +370,26 @@ const Header = styled.div`
   color: black;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  padding: 0 20px;
   font-size: 24px;
   font-weight: bold;
   z-index: 1000;
   box-shadow: 0 4px 6px rgb(201, 80, 169);
   
   span {
-    position: relative;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     text-align: center;
   }
 `;
 
-const ButtonContainer = styled.div`
-  position: absolute;
-  right: 20px;
-  top: 50%;
-  transform: translateY(-50%);
+const HeaderButtonContainer = styled.div`
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 `;
 
 const HomeButton = styled.button`
@@ -426,6 +506,21 @@ const ExerciseCard = styled.div`
   }
 `;
 
+const DeleteExerciseButton = styled.button`
+  background-color: #ff4444;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #cc0000;
+  }
+`;
+
 const SavedWorkoutOverlay = styled.div`
   position: fixed;
   top: 0;
@@ -505,21 +600,17 @@ const WorkoutColumn = styled.div`
 `;
 
 const CloseButton = styled.button`
-  margin-top: 10px;
-  padding: 10px;
-  border: none;
-  background: red;
+  background-color: #666;
   color: white;
-  cursor: pointer;
+  border: none;
+  padding: 10px 20px;
   border-radius: 5px;
+  cursor: pointer;
   font-size: 16px;
-  width: 100%;
-  text-align: center;
-  font-weight: bold;
-  transition: 0.3s;
+  transition: background-color 0.2s;
 
   &:hover {
-    background: darkred;
+    background-color: #444;
   }
 `;
 
@@ -580,4 +671,11 @@ const SuccessMessage = styled.div`
     80% { opacity: 1; }
     100% { opacity: 0; }
   }
+`;
+
+const ButtonContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
 `; 
