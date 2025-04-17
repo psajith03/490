@@ -25,6 +25,9 @@ const ExerciseHome = () => {
           <RatedWorkoutsButton onClick={() => navigate('/rated-workouts')}>
             Rated Workouts
           </RatedWorkoutsButton>
+          <ProgressiveOverloadButton onClick={() => navigate('/progressive-overload')}>
+            Progressive Overload
+          </ProgressiveOverloadButton>
         </ButtonContainer>
       </Content>
     </ExerciseWrapper>
@@ -211,4 +214,11 @@ const RatedWorkoutsButton = styled(BaseButton)`
   --glow-spread-color: rgba(90, 50, 163, 0.781);
   --enhanced-glow-color: rgb(150, 100, 255);
   --btn-color: rgb(50, 0, 100);
+`;
+
+const ProgressiveOverloadButton = styled(BaseButton)`
+  --glow-color: rgb(255, 107, 107);
+  --glow-spread-color: rgba(255, 107, 107, 0.781);
+  --enhanced-glow-color: rgb(255, 150, 150);
+  --btn-color: rgb(136, 0, 0);
 `;

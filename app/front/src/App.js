@@ -15,6 +15,10 @@ import ExerciseHome from './components/ExerciseHome';
 import SavedWorkouts from './components/SavedWorkouts';
 import CustomWorkouts from './components/CustomWorkouts';
 import RatedWorkouts from './components/RatedWorkouts';
+import ProgressiveOverload from './components/ProgressiveOverload';
+import NewProgressive from './components/NewProgressive';
+import SelectWorkout from './components/SelectWorkout';
+import ExistingProgressive from './components/ExistingProgressive';
 import './App.css';
 import FullRecommendation from "./components/FullRecommendation";
 const API_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
@@ -69,6 +73,10 @@ function App() {
           <Route path="/saved-workouts" element={<SavedWorkouts />} />
           <Route path="/custom-workouts" element={<CustomWorkouts />} />
           <Route path="/rated-workouts" element={<RatedWorkouts />} />
+          <Route path="/progressive-overload" element={<ProgressiveOverload />} />
+          <Route path="/progressive-overload/new" element={<NewProgressive />} />
+          <Route path="/progressive-overload/select" element={<SelectWorkout />} />
+          <Route path="/progressive-overload/:workoutId" element={<ExistingProgressive />} />
           <Route path="/sleep" element={<Sleep />} /> 
           <Route path="/daily" element={<Daily />} />
           <Route path="/dietHome" element={<DietHome />} /> 
