@@ -13,6 +13,12 @@ const SavedWorkouts = () => {
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [ratingSuccess, setRatingSuccess] = useState(false);
+  const [showAddExercise, setShowAddExercise] = useState(false);
+  const [exerciseName, setExerciseName] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedExerciseDetails, setSelectedExerciseDetails] = useState(null);
+  const [exerciseDetailsLoading, setExerciseDetailsLoading] = useState(false);
 
   const fetchSavedWorkouts = async () => {
     try {
@@ -193,6 +199,95 @@ const SavedWorkouts = () => {
     }
   };
 
+  const fetchExerciseSuggestions = async (query) => {
+    if (query.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const API_URL = `http://localhost:5000/api/exercise/search?query=${encodeURIComponent(query)}`;
+      const res = await fetch(API_URL);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const data = await res.json();
+      setSuggestions(data);
+    } catch (error) {
+      console.error("Error fetching exercise suggestions:", error);
+      setSuggestions([]);
+    }
+  };
+
+  const handleExerciseSelect = async (exerciseName) => {
+    setExerciseName(exerciseName);
+    setSuggestions([]);
+    setExerciseDetailsLoading(true);
+    
+    try {
+      const API_URL = `http://localhost:5000/api/exercise/${encodeURIComponent(exerciseName)}`;
+      const res = await fetch(API_URL);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const data = await res.json();
+      setSelectedExerciseDetails(data);
+    } catch (error) {
+      console.error("Error fetching exercise details:", error);
+      alert('Failed to fetch exercise details');
+    } finally {
+      setExerciseDetailsLoading(false);
+    }
+  };
+
+  const handleAddExercise = async () => {
+    if (!selectedCategory || !selectedExerciseDetails) {
+      alert('Please select a category and exercise');
+      return;
+    }
+
+    try {
+      const idToken = await auth.currentUser?.getIdToken(true);
+      if (!idToken) {
+        throw new Error("User not authenticated");
+      }
+
+      const API_URL = "http://localhost:5000";
+      const response = await fetch(`${API_URL}/api/saved-workouts/${selectedWorkout._id}/add-exercise`, {
+        method: "PATCH",
+        headers: {
+          "Authorization": `Bearer ${idToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ 
+          exerciseName: selectedExerciseDetails.name, 
+          category: selectedCategory 
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add exercise');
+      }
+
+      const data = await response.json();
+      setSavedWorkouts(prevWorkouts => 
+        prevWorkouts.map(workout => 
+          workout._id === selectedWorkout._id ? data.workout : workout
+        )
+      );
+      setSelectedWorkout(data.workout);
+      setShowAddExercise(false);
+      setExerciseName('');
+      setSelectedCategory('');
+      setSelectedExerciseDetails(null);
+      alert('Exercise added successfully!');
+    } catch (error) {
+      console.error("Error adding exercise:", error);
+      alert(`Failed to add exercise: ${error.message}`);
+    }
+  };
+
   if (loading) return <LoadingMessage>Loading saved workouts...</LoadingMessage>;
 
   return (
@@ -310,7 +405,10 @@ const SavedWorkouts = () => {
       {selectedWorkout && (
         <SavedWorkoutOverlay>
           <SavedWorkoutContent>
-            <CloseButton onClick={() => setSelectedWorkout(null)}>Close</CloseButton>
+            <ButtonContainer>
+              <CloseButton onClick={() => setSelectedWorkout(null)}>Close</CloseButton>
+              <AddButton onClick={() => setShowAddExercise(true)}>+</AddButton>
+            </ButtonContainer>
             <h2>{selectedWorkout.name || selectedWorkout.splitType.replace(/_/g, ' ').toUpperCase()}</h2>
             <WorkoutRow>
               {Object.entries(selectedWorkout.exercises).map(([category, exercises]) => (
@@ -334,6 +432,106 @@ const SavedWorkouts = () => {
             </WorkoutRow>
           </SavedWorkoutContent>
         </SavedWorkoutOverlay>
+      )}
+
+      {showAddExercise && (
+        <AddExerciseModal>
+          <ModalContent>
+            <CardHeader>
+              <h3>Add Exercise to {selectedWorkout?.name || selectedWorkout?.splitType.replace(/_/g, ' ').toUpperCase()}</h3>
+              <CloseButton 
+                onClick={() => {
+                  setShowAddExercise(false);
+                  setExerciseName('');
+                  setSelectedCategory('');
+                  setSelectedExerciseDetails(null);
+                }}
+              >
+                ×
+              </CloseButton>
+            </CardHeader>
+            <FormGroup>
+              <label>Search Exercise:</label>
+              <input
+                type="text"
+                value={exerciseName}
+                onChange={(e) => {
+                  setExerciseName(e.target.value);
+                  fetchExerciseSuggestions(e.target.value);
+                }}
+                placeholder="Type exercise name..."
+              />
+              {suggestions.length > 0 && (
+                <SuggestionsList>
+                  {suggestions.map((suggestion) => (
+                    <SuggestionItem
+                      key={suggestion}
+                      onClick={() => handleExerciseSelect(suggestion)}
+                    >
+                      {suggestion}
+                    </SuggestionItem>
+                  ))}
+                </SuggestionsList>
+              )}
+            </FormGroup>
+
+            {exerciseDetailsLoading && <p>Loading exercise details...</p>}
+
+            {selectedExerciseDetails && (
+              <ExerciseDetailsCard>
+                <h3>{selectedExerciseDetails.name}</h3>
+                {selectedExerciseDetails.gifUrl ? (
+                  <GifContainer>
+                    <img 
+                      src={selectedExerciseDetails.gifUrl} 
+                      alt={selectedExerciseDetails.name}
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                        const container = e.target.parentElement;
+                        const noGifMessage = document.createElement('p');
+                        noGifMessage.textContent = 'No GIF Found';
+                        noGifMessage.style.textAlign = 'center';
+                        noGifMessage.style.padding = '20px';
+                        container.appendChild(noGifMessage);
+                      }}
+                    />
+                  </GifContainer>
+                ) : (
+                  <GifContainer>
+                    <p style={{ textAlign: 'center', padding: '20px' }}>No GIF Found</p>
+                  </GifContainer>
+                )}
+                <ExerciseInfo>
+                  <p><strong>Target Muscle:</strong> {selectedExerciseDetails.target || "N/A"}</p>
+                  <p><strong>Equipment:</strong> {selectedExerciseDetails.equipment || "N/A"}</p>
+                </ExerciseInfo>
+                <FormGroup>
+                  <label>Select Category:</label>
+                  <select 
+                    value={selectedCategory} 
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                  >
+                    <option value="">Select Category</option>
+                    {Object.keys(selectedWorkout?.exercises || {}).map(category => (
+                      <option key={category} value={category}>
+                        {category.toUpperCase()}
+                      </option>
+                    ))}
+                  </select>
+                </FormGroup>
+                <ButtonContainer>
+                  <AddButton onClick={handleAddExercise}>Add to Workout</AddButton>
+                  <CloseButton onClick={() => {
+                    setShowAddExercise(false);
+                    setExerciseName('');
+                    setSelectedCategory('');
+                    setSelectedExerciseDetails(null);
+                  }}>Cancel</CloseButton>
+                </ButtonContainer>
+              </ExerciseDetailsCard>
+            )}
+          </ModalContent>
+        </AddExerciseModal>
       )}
     </WorkoutWrapper>
   );
@@ -678,4 +876,130 @@ const ButtonContainer = styled.div`
   justify-content: center;
   gap: 10px;
   margin-top: 20px;
+`;
+
+const AddButton = styled.button`
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #218838;
+  }
+`;
+
+const AddExerciseModal = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+`;
+
+const ModalContent = styled.div`
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 500px;
+  color: black;
+`;
+
+const FormGroup = styled.div`
+  margin-bottom: 20px;
+  position: relative;
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+  }
+`;
+
+const SuggestionsList = styled.ul`
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-top: 5px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1002;
+  list-style: none;
+  padding: 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+`;
+
+const SuggestionItem = styled.li`
+  padding: 10px;
+  cursor: pointer;
+  &:hover {
+    background-color: #f0f0f0;
+  }
+`;
+
+const ExerciseDetailsCard = styled.div`
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: relative;
+`;
+
+const CardHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+
+  h3 {
+    margin: 0;
+  }
+`;
+
+const GifContainer = styled.div`
+  width: 100%;
+  max-width: 300px;
+  margin: 10px auto;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+  img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+`;
+
+const ExerciseInfo = styled.div`
+  margin: 15px 0;
+  text-align: left;
+  
+  p {
+    margin: 8px 0;
+    line-height: 1.4;
+  }
 `; 

@@ -152,4 +152,54 @@ router.patch('/saved-workouts/:id/exercises', verifyToken, async (req, res) => {
   }
 });
 
+router.patch('/saved-workouts/:id/add-exercise', verifyToken, async (req, res) => {
+  try {
+    const workoutId = req.params.id;
+    const userId = req.user.uid;
+    const { exerciseName, category } = req.body;
+
+    if (!exerciseName || !category) {
+      return res.status(400).json({ error: 'Missing exercise name or category' });
+    }
+
+    const workout = await SavedWorkout.findOne({ _id: workoutId, userId });
+    
+    if (!workout) {
+      return res.status(404).json({ error: 'Workout not found or unauthorized' });
+    }
+
+    if (!workout.exercises[category]) {
+      workout.exercises[category] = [];
+    }
+
+    const exerciseExists = workout.exercises[category].some(
+      exercise => exercise.toLowerCase() === exerciseName.toLowerCase()
+    );
+
+    if (exerciseExists) {
+      return res.status(400).json({ error: 'Exercise already exists in this category' });
+    }
+
+    workout.exercises[category].push(exerciseName);
+
+    const updatedWorkout = await SavedWorkout.findByIdAndUpdate(
+      workoutId,
+      { $set: { exercises: workout.exercises } },
+      { new: true }
+    );
+
+    if (!updatedWorkout) {
+      throw new Error('Failed to update workout');
+    }
+
+    return res.status(200).json({ 
+      message: 'Exercise added successfully', 
+      workout: updatedWorkout 
+    });
+  } catch (error) {
+    console.error('Error adding exercise:', error);
+    res.status(500).json({ error: 'Failed to add exercise' });
+  }
+});
+
 module.exports = router; 
