@@ -42,7 +42,6 @@ if (!admin.apps.length) {
 const authRoutes = require("./routes/auth");
 const exerciseRoutes = require("./routes/exercise");
 const savedWorkoutRoutes = require("./routes/savedWorkout");
-const progressiveOverloadRoutes = require("./routes/progressiveOverloadRoutes");
 
 app.get("/", (req, res) => {
   res.json({ message: "Backend server is running!" });
@@ -51,7 +50,6 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/exercise", exerciseRoutes);
 app.use("/api", savedWorkoutRoutes);
-app.use("/api/progressive-overload", progressiveOverloadRoutes);
 
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("MongoDB Connected"))
