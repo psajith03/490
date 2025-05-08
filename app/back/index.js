@@ -39,7 +39,7 @@ if (!admin.apps.length) {
   }
 }
 
-const authRoutes = require("./routes/auth");
+const { router: authRoutes } = require("./routes/auth");
 const exerciseRoutes = require("./routes/exercise");
 const savedWorkoutRoutes = require("./routes/savedWorkout");
 

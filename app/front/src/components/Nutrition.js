@@ -148,19 +148,23 @@ const Nutrition = () => {
         <HomeButton onClick={() => navigate('/DietHome')}>Diet Home</HomeButton>
       </Header>
       <Content>
-        <h1>Analyze Your Food</h1>
-        <p>Enter the ingredients you want to analyze:</p>
+        <TitleSection>
+          <h1>Analyze Your Food</h1>
+          <p>Enter the ingredients you want to analyze:</p>
+        </TitleSection>
 
-        <div>
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Enter an ingredient"
-            onKeyPress={(e) => e.key === 'Enter' && addIngredient()}
-          />
-          <button onClick={addIngredient}>Add</button>
-        </div>
+        <InputSection>
+          <InputContainer>
+            <StyledInput
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Enter an ingredient"
+              onKeyPress={(e) => e.key === 'Enter' && addIngredient()}
+            />
+            <AddButton onClick={addIngredient}>Add</AddButton>
+          </InputContainer>
+        </InputSection>
 
         <IngredientList>
           {ingredients.length > 0 ? (
@@ -199,7 +203,7 @@ const NutritionLabel = ({ nutrition, calculateDailyValue }) => {
       <ServingInfo>1 servings per container</ServingInfo>
       <ServingSizeRow>
         <span><strong>Serving size</strong></span>
-        <span>{nutrition.servingSize}</span> {}
+        <span>{nutrition.servingSize}</span>
       </ServingSizeRow>
 
       <ThickDivider />
@@ -250,35 +254,36 @@ const NutritionLabel = ({ nutrition, calculateDailyValue }) => {
 
       <NutrientRow indented>
         <span>Total Sugars {(nutrition.totalSugars || 0).toFixed(0)}g</span>
-      </NutrientRow>
-
-      <NutrientRow doubleIndented>
-        <span>Includes {(nutrition.addedSugars || 0).toFixed(0)}g Added Sugars</span>
-        <span>{calculateDailyValue('addedSugars', nutrition.addedSugars || 0)}%</span>
+        <span>{calculateDailyValue('addedSugars', nutrition.totalSugars || 0)}%</span>
       </NutrientRow>
 
       <NutrientRow>
         <strong>Protein {(nutrition.protein || 0).toFixed(0)}g</strong>
+        <strong>{calculateDailyValue('protein', nutrition.protein || 0)}%</strong>
       </NutrientRow>
 
-      <Divider />
+      <ThickDivider />
+
+      <SmallText>
+        * The % Daily Value (DV) tells you how much a nutrient in a serving of food contributes to a daily diet. 2,000 calories a day is used for general nutrition advice.
+      </SmallText>
     </LabelContainer>
   );
 };
 
-export default Nutrition;
-
-
 const PageWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   min-height: 100vh;
-  background: radial-gradient(125% 125% at 50% 10%, #a60064 40%, #000 100%);
-  color: white;
-  text-align: center;
-  padding: 80px 20px 20px;
+  background: linear-gradient(45deg, #B7E4C7, #FFE066, #74C0FC, #c4a7e7);
+  background-size: 400% 400%;
+  animation: gradientAnimation 10s ease infinite;
+  padding: 20px;
+  box-sizing: border-box;
+
+  @keyframes gradientAnimation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
 `;
 
 const Header = styled.div`
@@ -287,7 +292,8 @@ const Header = styled.div`
   left: 0;
   width: 100%;
   height: 60px;
-  background-color: #fff;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
   color: black;
   display: flex;
   align-items: center;
@@ -295,7 +301,7 @@ const Header = styled.div`
   font-size: 24px;
   font-weight: bold;
   z-index: 1000;
-  box-shadow: 0 4px 6px rgb(201, 80, 169);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 `;
 
 const HomeButton = styled.button`
@@ -306,190 +312,248 @@ const HomeButton = styled.button`
   padding: 8px 16px;
   font-size: 14px;
   font-weight: bold;
+  border: .25em solid rgb(217, 176, 255);
   background-color: #fff;
   color: rgb(217, 176, 255);
   border-radius: 1em;
   cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 0 1em .25em rgb(217, 176, 255),
+              0 0 4em 1em rgba(191, 123, 255, 0.5),
+              inset 0 0 .75em .25em rgb(217, 176, 255);
+  text-shadow: 0 0 .5em rgb(217, 176, 255);
+
+  &:hover {
+    background-color: rgb(217, 176, 255);
+    color: #222;
+  }
 `;
 
 const Content = styled.div`
+  margin-top: 80px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 20px;
+`;
+
+const TitleSection = styled.div`
   text-align: center;
-  width: 100%;
-  max-width: 600px;
-
+  margin-bottom: 30px;
+  
   h1 {
-    font-size: 36px;
-    margin-bottom: 20px;
+    font-size: 2.5em;
+    color: #333;
+    margin-bottom: 10px;
   }
-
+  
   p {
-    font-size: 18px;
-  }
-
-  input {
-    padding: 8px;
-    margin-right: 10px;
-    border-radius: 4px;
-    border: none;
-  }
-
-  button {
-    padding: 8px 16px;
-    background: white;
-    color: #a60064;
-    border: none;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-    
-    &:hover {
-      background: #f0f0f0;
-    }
-    
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+    color: #666;
+    font-size: 1.1em;
   }
 `;
 
-
-const IngredientList = styled.ul`
-  list-style-type: none;
-  padding: 0;
-  margin: 15px 0;
-  text-align: left;
-  width: 100%;
+const InputSection = styled.div`
+  margin-bottom: 30px;
 `;
 
-const IngredientItem = styled.li`
-  background-color: rgba(255, 255, 255, 0.1);
-  margin-bottom: 5px;
-  padding: 8px 15px;
-  border-radius: 4px;
+const InputContainer = styled.div`
   display: flex;
-  justify-content: space-between;
+  gap: 10px;
+  max-width: 600px;
+  margin: 0 auto;
+`;
+
+const StyledInput = styled.input`
+  flex: 1;
+  padding: 12px 20px;
+  font-size: 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #74C0FC;
+    box-shadow: 0 0 10px rgba(116, 192, 252, 0.3);
+  }
+`;
+
+const AddButton = styled.button`
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  background: #74C0FC;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: #5BA4E5;
+    transform: translateY(-2px);
+  }
+`;
+
+const IngredientList = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 30px;
+  justify-content: center;
+`;
+
+const IngredientItem = styled.div`
+  display: flex;
   align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
 const IngredientText = styled.span`
-  flex-grow: 1;
+  font-size: 14px;
+  color: #333;
 `;
 
 const RemoveButton = styled.button`
-  background: transparent !important;
-  color: white !important;
+  background: none;
   border: none;
-  padding: 0 8px !important;
-  font-size: 16px;
+  color: #ff6b6b;
   cursor: pointer;
-  
+  font-size: 16px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+
   &:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border-radius: 50%;
+    background: rgba(255, 107, 107, 0.1);
   }
 `;
 
-const EmptyMessage = styled.li`
-  text-align: center;
+const EmptyMessage = styled.div`
+  color: #666;
   font-style: italic;
-  padding: 10px;
-  opacity: 0.7;
+  text-align: center;
+  width: 100%;
+  padding: 20px;
 `;
 
 const AnalyzeButton = styled.button`
-  margin-top: 10px;
-  padding: 10px 20px !important;
-  font-size: 16px;
-  min-width: 200px;
+  display: block;
+  margin: 30px auto;
+  padding: 15px 30px;
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  background: linear-gradient(45deg, #74C0FC, #5BA4E5);
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(116, 192, 252, 0.3);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(116, 192, 252, 0.4);
+  }
+
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+`;
+
+const ErrorMessage = styled.div`
+  color: #ff6b6b;
+  text-align: center;
+  margin: 20px 0;
+  padding: 10px;
+  background: rgba(255, 107, 107, 0.1);
+  border-radius: 10px;
 `;
 
 const LabelContainer = styled.div`
   background: white;
-  color: black;
-  padding: 10px;
-  border: 1px solid black;
-  width: 270px;
-  margin: 20px auto;
-  text-align: left;
-  font-family: Arial, sans-serif;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  margin: 30px auto;
 `;
 
 const LabelTitle = styled.h2`
   font-size: 24px;
-  font-weight: 900;
-  margin: 0;
-  padding: 0;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 10px;
+  color: #333;
 `;
 
-const ServingInfo = styled.p`
-  margin: 0;
-  padding: 0;
+const ServingInfo = styled.div`
   font-size: 14px;
+  color: #666;
+  margin-bottom: 5px;
 `;
 
 const ServingSizeRow = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin: 1px 0;
   font-size: 14px;
+  margin-bottom: 10px;
 `;
 
-const ThickDivider = styled.div`
-  height: 6px;
-  background-color: black;
-  margin: 2px 0;
+const ThickDivider = styled.hr`
+  border: none;
+  border-top: 8px solid black;
+  margin: 10px 0;
 `;
 
-const MediumDivider = styled.div`
-  height: 3px;
-  background-color: black;
-  margin: 2px 0;
+const MediumDivider = styled.hr`
+  border: none;
+  border-top: 1px solid black;
+  margin: 10px 0;
 `;
 
-const Divider = styled.div`
-  height: 1px;
-  background-color: black;
-  margin: 2px 0;
-`;
-
-const SmallText = styled.p`
-  font-size: 10px;
-  margin: 1px 0;
-  font-weight: bold;
+const SmallText = styled.div`
+  font-size: 12px;
+  color: #666;
+  margin: 10px 0;
 `;
 
 const CalorieRow = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: bold;
+  margin: 10px 0;
 `;
 
 const DailyValueHeader = styled.div`
-  text-align: right;
-  font-size: 10px;
-  margin: 1px 0;
+  font-size: 14px;
+  font-weight: bold;
+  margin: 10px 0;
 `;
 
 const NutrientRow = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin: 1px 0;
   font-size: 14px;
-  padding-left: ${props => props.indented ? '20px' : props.doubleIndented ? '40px' : '0'};
+  margin: 5px 0;
+  padding-left: ${props => props.indented ? '20px' : '0'};
 `;
 
-const Footnote = styled.p`
-  font-size: 10px;
-  margin-top: 5px;
-`;
-
-const ErrorMessage = styled.p`
-  color: red;
-  font-size: 16px;
-  margin-top: 10px;
-`;
+export default Nutrition;

@@ -59,7 +59,7 @@ NUTRIENT_IDS = {
     "Total Sugars": 2000,
     "Added Sugars": 1235,
     "Protein": 1003,
-    "Energy": 2048
+    "Energy": [1008, 2048, 2047]
 }
 
 def get_fdc_id(food_query):
@@ -67,7 +67,9 @@ def get_fdc_id(food_query):
     payload = {
         "query": food_query,
         "dataType": ["Foundation", "SR Legacy"],
-        "pageSize": 1
+        "pageSize": 5,
+        "sortBy": "dataType.keyword",
+        "sortOrder": "asc"
     }
     headers = {"Content-Type": "application/json"}
 
@@ -76,6 +78,15 @@ def get_fdc_id(food_query):
     if response.status_code == 200:
         data = response.json()
         if "foods" in data and data["foods"]:
+            for food in data["foods"]:
+                description = food.get("description", "").lower()
+                if description == food_query.lower():
+                    return food.get("fdcId")
+
+            for food in data["foods"]:
+                if food.get("dataType") == "Foundation":
+                    return food.get("fdcId")
+
             return data["foods"][0].get("fdcId")
 
     return None
@@ -97,7 +108,13 @@ def get_nutrition_by_fdc(fdc_id):
                 unit = nutrient.get("nutrient", {}).get("unitName", "")
 
                 for name, nid in NUTRIENT_IDS.items():
-                    if nutrient_id == nid:
+                    if isinstance(nid, list):
+                        if nutrient_id in nid:
+                            if name == "Energy" and nutrient_id == 1008:
+                                macronutrients[name] = f"{amount} {unit}"
+                            elif name == "Energy" and name not in macronutrients:
+                                macronutrients[name] = f"{amount} {unit}"
+                    elif nutrient_id == nid:
                         macronutrients[name] = f"{amount} {unit}"
 
             return {

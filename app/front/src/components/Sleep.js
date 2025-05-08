@@ -108,38 +108,71 @@ const Sleep = () => {
         <HomeButton onClick={() => navigate('/')}>Home</HomeButton>
       </Header>
       <Content>
-        <h1>Track Your Sleep</h1>
-        <p>Log your sleep to monitor debt & optimize rest.</p>
+        <TitleSection>
+          <h1>Sleep Analytics</h1>
+          <p>Monitor your sleep patterns and optimize your rest</p>
+        </TitleSection>
 
-        <SleepInputContainer>
-          <label>Sleep Time:</label>
-          <input type="time" value={sleepTime} onChange={(e) => setSleepTime(e.target.value)} />
+        <DashboardContainer>
+          <SleepInputCard>
+            <h2>Log Sleep</h2>
+            <TimeInputGroup>
+              <TimeInput>
+                <label>Sleep Time</label>
+                <input 
+                  type="time" 
+                  value={sleepTime} 
+                  onChange={(e) => setSleepTime(e.target.value)}
+                />
+              </TimeInput>
+              <TimeInput>
+                <label>Wake Time</label>
+                <input 
+                  type="time" 
+                  value={wakeTime} 
+                  onChange={(e) => setWakeTime(e.target.value)}
+                />
+              </TimeInput>
+            </TimeInputGroup>
+            <LogButton onClick={logSleep}>Log Sleep</LogButton>
+          </SleepInputCard>
 
-          <label>Wake Time:</label>
-          <input type="time" value={wakeTime} onChange={(e) => setWakeTime(e.target.value)} />
+          <StatsCard>
+            <h2>Sleep Statistics</h2>
+            <StatItem>
+              <StatLabel>Sleep Debt</StatLabel>
+              <StatValue>{sleepDebt} hours</StatValue>
+            </StatItem>
+            <StatItem>
+              <StatLabel>Goal Hours</StatLabel>
+              <StatValue>{goalHours} hours</StatValue>
+            </StatItem>
+          </StatsCard>
+        </DashboardContainer>
 
-          <button onClick={logSleep}>Log Sleep</button>
-        </SleepInputContainer>
-
-        <DebtCounter>
-          <h2>Sleep Debt: {sleepDebt} hours</h2>
-        </DebtCounter>
-
-        <HistoryContainer>
-          <h3>Sleep Log (Last 14 Days)</h3>
-          {loading ? <p>Loading...</p> : (
-            sleepHistory.length > 0 ? (
+        <HistorySection>
+          <h2>Sleep History</h2>
+          <HistoryContainer>
+            {loading ? (
+              <LoadingSpinner>Loading...</LoadingSpinner>
+            ) : sleepHistory.length > 0 ? (
               sleepHistory.map((entry) => (
                 <SleepEntry key={entry.id}>
-                  <p>{entry.date}: {entry.sleepTime} - {entry.wakeTime} ({entry.duration} hrs)</p>
-                  <button onClick={() => deleteSleepEntry(entry.id)}>❌</button>
+                  <EntryInfo>
+                    <EntryDate>{entry.date}</EntryDate>
+                    <EntryTime>{entry.sleepTime} - {entry.wakeTime}</EntryTime>
+                    <EntryDuration>{entry.duration} hours</EntryDuration>
+                  </EntryInfo>
+                  <DeleteButton onClick={() => deleteSleepEntry(entry.id)}>
+                    <span>×</span>
+                  </DeleteButton>
                 </SleepEntry>
               ))
             ) : (
-              <p>No sleep data logged yet.</p>
-            )
-          )}
-        </HistoryContainer>
+              <EmptyState>No sleep data logged yet</EmptyState>
+            )}
+          </HistoryContainer>
+        </HistorySection>
       </Content>
     </PageWrapper>
   );
@@ -148,14 +181,9 @@ const Sleep = () => {
 export default Sleep;
 
 const PageWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  background: radial-gradient(125% 125% at 50% 10%, rgb(97, 23, 120) 40%, #000 100%);
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   color: white;
-  text-align: center;
 `;
 
 const Header = styled.div`
@@ -164,69 +192,234 @@ const Header = styled.div`
   left: 0;
   width: 100%;
   height: 60px;
-  background-color: #fff;
-  color: black;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
   font-weight: bold;
   z-index: 1000;
-  box-shadow: 0 4px 6px rgb(201, 80, 169);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 `;
 
 const HomeButton = styled.button`
   position: absolute;
   right: 20px;
-  top: 50%;
-  transform: translateY(-50%);
   padding: 8px 16px;
   font-size: 14px;
   font-weight: bold;
-  border: .25em solid rgb(217, 176, 255);
-  background-color: #fff;
-  color: rgb(217, 176, 255);
-  border-radius: 1em;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 0 1em .25em rgb(217, 176, 255),
-              0 0 4em 1em rgba(191, 123, 255, 0.5),
-              inset 0 0 .75em .25em rgb(217, 176, 255);
-  text-shadow: 0 0 .5em rgb(217, 176, 255);
+  transition: all 0.3s ease;
 
   &:hover {
-    background-color: rgb(217, 176, 255);
-    color: #222;
+    background: rgba(255, 255, 255, 0.2);
   }
 `;
 
 const Content = styled.div`
-  margin-top: 80px;
-  text-align: center;
+  padding: 80px 20px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
 `;
 
-const SleepInputContainer = styled.div`
+const TitleSection = styled.div`
+  text-align: center;
+  margin-bottom: 40px;
+
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    background: linear-gradient(45deg, #00b4d8, #90e0ef);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  p {
+    color: #90e0ef;
+    font-size: 1.1rem;
+  }
+`;
+
+const DashboardContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+`;
+
+const Card = styled.div`
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 20px;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+`;
+
+const SleepInputCard = styled(Card)`
+  h2 {
+    color: #90e0ef;
+    margin-bottom: 20px;
+  }
+`;
+
+const TimeInputGroup = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+`;
+
+const TimeInput = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: 8px;
+
+  label {
+    color: #90e0ef;
+    font-size: 0.9rem;
+  }
+
+  input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 10px;
+    color: white;
+    font-size: 1rem;
+
+    &:focus {
+      outline: none;
+      border-color: #00b4d8;
+    }
+  }
 `;
 
-const DebtCounter = styled.div`
-  margin-top: 20px;
-  font-size: 20px;
+const LogButton = styled.button`
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(45deg, #00b4d8, #90e0ef);
+  border: none;
+  border-radius: 8px;
+  color: #1a1a2e;
   font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 180, 216, 0.4);
+  }
+`;
+
+const StatsCard = styled(Card)`
+  h2 {
+    color: #90e0ef;
+    margin-bottom: 20px;
+  }
+`;
+
+const StatItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const StatLabel = styled.span`
+  color: #90e0ef;
+`;
+
+const StatValue = styled.span`
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: white;
+`;
+
+const HistorySection = styled.div`
+  h2 {
+    color: #90e0ef;
+    margin-bottom: 20px;
+  }
 `;
 
 const HistoryContainer = styled.div`
-  margin-top: 20px;
-  text-align: left;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 20px;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 `;
 
 const SleepEntry = styled.div`
   display: flex;
   justify-content: space-between;
-  margin: 5px 0;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 8px;
+  align-items: center;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+`;
+
+const EntryInfo = styled.div`
+  display: flex;
+  gap: 20px;
+  align-items: center;
+`;
+
+const EntryDate = styled.span`
+  color: #90e0ef;
+  font-weight: bold;
+`;
+
+const EntryTime = styled.span`
+  color: white;
+`;
+
+const EntryDuration = styled.span`
+  color: #00b4d8;
+  font-weight: bold;
+`;
+
+const DeleteButton = styled.button`
+  background: none;
+  border: none;
+  color: #ff6b6b;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0 10px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: #ff8787;
+    transform: scale(1.1);
+  }
+`;
+
+const LoadingSpinner = styled.div`
+  text-align: center;
+  color: #90e0ef;
+  padding: 20px;
+`;
+
+const EmptyState = styled.div`
+  text-align: center;
+  color: #90e0ef;
+  padding: 20px;
+  font-style: italic;
 `;

@@ -25,6 +25,9 @@ const ExerciseHome = () => {
           <RatedWorkoutsButton onClick={() => navigate('/rated-workouts')}>
             Rated Workouts
           </RatedWorkoutsButton>
+          <AIRecommendationButton onClick={() => navigate('/exercise-prediction')}>
+            AI Recommendation
+          </AIRecommendationButton>
         </ButtonContainer>
       </Content>
     </ExerciseWrapper>
@@ -211,4 +214,11 @@ const RatedWorkoutsButton = styled(BaseButton)`
   --glow-spread-color: rgba(90, 50, 163, 0.781);
   --enhanced-glow-color: rgb(150, 100, 255);
   --btn-color: rgb(50, 0, 100);
+`;
+
+const AIRecommendationButton = styled(BaseButton)`
+  --glow-color: rgb(255, 64, 129);
+  --glow-spread-color: rgba(255, 64, 129, 0.781);
+  --enhanced-glow-color: rgb(255, 100, 150);
+  --btn-color: rgb(136, 0, 50);
 `;

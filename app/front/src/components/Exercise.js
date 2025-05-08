@@ -146,12 +146,21 @@ const Exercise = () => {
   const fetchExerciseDetails = async (exerciseName) => {
     setExerciseLoading(true);
     try {
-      const API_URL = `http://localhost:5001/api/exercise/${encodeURIComponent(exerciseName)}`;
-      const res = await fetch(API_URL);
+      const API_URL = "http://localhost:5000";
+      const res = await fetch(`${API_URL}/api/exercise/${encodeURIComponent(exerciseName)}`);
+      if (!res.ok) {
+        throw new Error(`Failed to fetch exercise details: ${res.status} ${res.statusText}`);
+      }
       const data = await res.json();
       setSelectedExercise(data);
     } catch (error) {
       console.error("Error fetching exercise details:", error);
+      setSelectedExercise({
+        name: exerciseName,
+        target: "N/A",
+        equipment: "N/A",
+        instructions: ["No details available for this exercise."]
+      });
     } finally {
       setExerciseLoading(false);
     }
